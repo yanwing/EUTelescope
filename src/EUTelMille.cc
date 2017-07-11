@@ -325,7 +325,9 @@ EUTelMille::EUTelMille () : Processor("EUTelMille") {
 void EUTelMille::init() {
 
 	// Getting access to geometry description
-	geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+    std::string name("test.root");
+    geo::gGeometry().initializeTGeoDescription(name,false);
+
 
   _sensorIDVec.clear();
   _sensorIDVecMap.clear();

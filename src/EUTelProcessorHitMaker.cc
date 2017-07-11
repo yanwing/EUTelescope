@@ -26,6 +26,7 @@
 #include "EUTelDFFClusterImpl.h"
 #include "EUTelBrickedClusterImpl.h"
 #include "EUTelSparseClusterImpl.h"
+#include "EUTelAnnulusClusterImpl.h"
 
 #include "EUTelExceptions.h"
 #include "EUTelAlignmentConstant.h"
@@ -87,12 +88,14 @@ _conversionIdMap(),
 _alreadyBookedSensorID(),
 _aidaHistoMap(),
 _histogramSwitch(true),
-_orderedSensorIDVec()
+_orderedSensorIDVec(),
+_localDistDUT(0,0)
 {
   // modify processor description
   _description =  "EUTelProcessorHitMaker is responsible to translate cluster centers from the local frame of reference \nto the external frame of reference using the GEAR geometry description";
 
   registerInputCollection(LCIO::TRACKERPULSE,"PulseCollectionName", "Input cluster collection name", _pulseCollectionName, std::string(""));
+  registerOptionalParameter("localDistDUT", "Shift the DUT hits", _localDistDUT, FloatVec());
 
   registerOutputCollection(LCIO::TRACKERHIT,"HitCollectionName", "Output hit collection name", _hitCollectionName, std::string(""));
 
@@ -103,24 +106,32 @@ _orderedSensorIDVec()
   registerOptionalParameter("ReferenceHitFile","This is the file where the reference hit collection is stored", _referenceHitLCIOFile, std::string("reference.slcio") );
 }
 
-void EUTelProcessorHitMaker::init(){
-	printParameters ();
 
-	// set to zero the run and event counters
-	_iRun = 0;
-	_iEvt = 0;
+void EUTelProcessorHitMaker::init()
+{
+		printParameters ();
 
-	geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+		// set to zero the run and event counters
+		_iRun = 0;
+		_iEvt = 0;
 
-	_histogramSwitch = true;
+		// Getting access to geometry description
+		std::string name = EUTELESCOPE::GEOFILENAME;
+		geo::gGeometry().initializeTGeoDescription(name, false);
+                
 
-	//only for global coord we need a refhit collection
-	if(!_wantLocalCoordinates) {
+		_histogramSwitch = true;
+
+		//only for global coord we need a refhit collection
+		if(!_wantLocalCoordinates)
+		{
 				DumpReferenceHitDB();
-	}
+		}
 }
 
-void EUTelProcessorHitMaker::DumpReferenceHitDB() {
+
+void EUTelProcessorHitMaker::DumpReferenceHitDB()
+{
 	// create a reference hit collection file (DB)
   LCWriter* lcWriter = LCFactory::getInstance()->createLCWriter();
   try {
@@ -203,8 +214,9 @@ void EUTelProcessorHitMaker::DumpReferenceHitDB() {
 
 
 void EUTelProcessorHitMaker::processRunHeader (LCRunHeader * rdr) {
-  std::unique_ptr<EUTelRunHeaderImpl> header = std::make_unique<EUTelRunHeaderImpl>(rdr);
-  header->addProcessor(type());
+
+  auto_ptr<EUTelRunHeaderImpl> header ( new EUTelRunHeaderImpl (rdr) );
+  header->addProcessor( type() );
 
   // this is the right place also to check the geometry ID. This is a
   // unique number identifying each different geometry used at the
@@ -228,7 +240,7 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
     EUTelEventImpl * evt = static_cast<EUTelEventImpl*> (event) ;
 
     if ( evt->getEventType() == kEORE ) {
-      streamlog_out ( DEBUG4 ) << "EORE found: nothing else to do." << endl;
+      streamlog_out ( DEBUG4 ) << "EORE found: nothing else to do. Inside EUTelProcessorHitMaker::processEvent, line 240" << endl;
       return;
     } else if ( evt->getEventType() == kUNKNOWN ) {
       streamlog_out ( WARNING2 ) << "Event number " << evt->getEventNumber() << " in run " << evt->getRunNumber()
@@ -270,10 +282,11 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
     double xSize = 0., ySize = 0.;
     double resolutionX = 0., resolutionY = 0.;
     double xPitch = 0., yPitch = 0.;
-
+    double covmatrix[4]; //added
 	for( int iCluster = 0; iCluster < pulseCollection->getNumberOfElements(); iCluster++ ) 
 	{
 			TrackerPulseImpl* pulse = dynamic_cast<TrackerPulseImpl*>(pulseCollection->getElementAt(iCluster));
+			streamlog_out(DEBUG1)<< std::scientific <<"pulseCollection->getElementAt(iCluster)->getTime()   " << pulse->getTime()  <<std::endl;
 			TrackerDataImpl* trackerData  = dynamic_cast<TrackerDataImpl*>( pulse->getTrackerData());
 
 			int sensorID = clusterCellDecoder(pulse)["sensorID"];
@@ -306,6 +319,8 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 
 			}
 
+                        float Fxpos=geo::gGeometry()._R0para.Fx;
+                        float Fypos=geo::gGeometry()._R0para.Fy; 
 
 			// LOCAL coordinate system !!!!!!
 			double telPos[3];
@@ -342,11 +357,42 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 					throw UnknownDataTypeException("Pixel type not supported for kEUTelGenericSparseClusterImpl");
 				}
 
-				telPos[0] = xPos;
+				telPos[0] = xPos;  //position on the plane
 				telPos[1] = yPos;
 				telPos[2] = 0;
 			}
 
+                        else if(clusterType == kEUTelAnnulusClusterImpl)
+                        {
+                                 float xPos = 0;
+                                 float yPos = 0;
+                                if(pixelType == kEUTelAnnulusPixel)
+                                 {
+  
+                                         EUTelAnnulusClusterImpl cluster(trackerData);
+                                          cluster.getGeometricCenterOfGravity(xPos, yPos);
+                                          //cluster.getHitCovMatrix(resolutionX, resolutionY,covmatrix);
+                                          //cluster.getAnnulusCenterOfGravity(Fxpos, Fypos, xPos, yPos);
+                                  }
+                                 else
+                                 {
+                                         //ERROR
+                                         streamlog_out( ERROR4 ) << "We do not support pixel type: " << pixelType << " for kEUTelAnnulusClusterImpl" << std    ::endl;
+                                         throw UnknownDataTypeException("Pixel type not supported for kEUTelAnnulusClusterImpl");
+                                 }
+                                 telPos[0] = xPos;
+                                 telPos[1] = yPos;
+                                 telPos[2] = 0;
+                                       
+                                 //if(_localDistDUT.empty()){
+                                 // _localDistDUT.push_back(0);
+                                 // _localDistDUT.push_back(1);
+                                 //}
+
+                                 //telPos[0] += _localDistDUT.at(0); 
+                                 //telPos[1] += _localDistDUT.at(1); 
+                         }
+ 
 			else
 			{
 					EUTelSparseClusterImpl<EUTelGenericSparsePixel>* cluster = new EUTelSparseClusterImpl<EUTelGenericSparsePixel>(trackerData);
@@ -404,9 +450,11 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 					//We have calculated the cluster hit position in terms of distance along the X and Y axis.
 					//However we still fo not have the sensor centre as the origin of the coordinate system.
 					//To do this we need to deduct xSize/2 and ySize/2 for the respective cluster X/Y position 
+					//telPos[0] = xDet - xSize/2. +_localDistDUT.at(0);  //LocalDistDUT is shift of the pixels center from the plane center?
+					//telPos[1] = yDet - ySize/2. +_localDistDUT.at(1); 
 
 
-					telPos[0] = xDet - xSize/2. ;
+					telPos[0] = xDet - xSize/2. ;  //LocalDistDUT is shift of the pixels center from the plane center?
 					telPos[1] = yDet - ySize/2. ; 
 					telPos[2] =   0.;
 
@@ -434,14 +482,14 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 			}
 #endif
 
-
 			if ( !_wantLocalCoordinates ) {
 					// 
 					// NOW !!
 					// GLOBAL coordinate system !!!
 
-					const double localPos[3] = { telPos[0], telPos[1], telPos[2] };
-					geo::gGeometry().local2Master( sensorID, localPos, telPos);
+                                        const double localPos[3] = { telPos[0], telPos[1], telPos[2] };
+
+					geo::gGeometry().local2Master( sensorID, localPos, telPos);   // from the plane coordinate to the telescope coordinate;
 
 			}
 
@@ -452,7 +500,10 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 					AIDA::IHistogram2D * histo2D = dynamic_cast<AIDA::IHistogram2D*> (_aidaHistoMap[ tempHistoName ] );
 					if ( histo2D )
 					{
-							histo2D->fill( telPos[0], telPos[1] );
+                                           const double localPos[3] = { telPos[0] , telPos[1], telPos[2] };
+                                           double gloPos[3];
+                                           geo::gGeometry().local2Master( sensorID, localPos, gloPos);
+					   histo2D->fill( gloPos[0], gloPos[1] );
 					}
 					else 
 					{
@@ -471,11 +522,20 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 			float cov[TRKHITNCOVMATRIX] = {0.,0.,0.,0.,0.,0.};
 			double resx = resolutionX;
 			double resy = resolutionY;
-			cov[0] = resx * resx; // cov(x,x)
+                        //if(clusterType == kEUTelAnnulusClusterImpl)
+                        //{
+                        //cov[0] = covmatrix[2]*covmatrix[2]; //resolution of R
+                        //cov[2] = covmatrix[3]*covmatrix[3]; //resolution of Phi
+                        //} 
+                        //else{
+			cov[0] = resx * resx; // cov(x,x) 
 			cov[2] = resy * resy; // cov(y,y)
+                        //}
+                        //streamlog_out(MESSAGE5)<<"Hit cov is "<<cov[0]<<", "<<cov[2]<<std::endl;
 			hit->setCovMatrix( cov );
 			hit->setType( clusterType  );
-            hit->setTime( pulse->getTime() );
+			streamlog_out(DEBUG1)<< " setting hit time" << pulse->getTime()  <<std::endl;
+			hit->setTime( pulse->getTime() );
 
 			// prepare a LCObjectVec to store the current cluster
 			LCObjectVec clusterVec;
@@ -536,8 +596,11 @@ void EUTelProcessorHitMaker::bookHistos(int sensorID) {
   double yMin = -(geo::gGeometry().siPlaneYSize ( sensorID )/2)-constant;
   double yMax = (geo::gGeometry().siPlaneYSize ( sensorID )/2)+constant; 
 
-  int xNBin =    geo::gGeometry().siPlaneXNpixels ( sensorID );
-  int yNBin =    geo::gGeometry().siPlaneYNpixels ( sensorID );
+  int xNBin =    2*geo::gGeometry().siPlaneXNpixels ( sensorID );
+  int yNBin;
+  //if(sensorID>9&&sensorID<22) yNBin = 500;
+  //else 
+  yNBin = 2*geo::gGeometry().siPlaneYNpixels ( sensorID );
 
 
   AIDA::IHistogram2D * hitHistoLocal = AIDAProcessor::histogramFactory(this)->createHistogram2D( (basePath + tempHistoName).c_str(),
@@ -559,14 +622,29 @@ void EUTelProcessorHitMaker::bookHistos(int sensorID) {
   double yPosition =  geo::gGeometry().siPlaneYPosition( sensorID );
   double xSize     =  geo::gGeometry().siPlaneXSize ( sensorID );
   double ySize     =  geo::gGeometry().siPlaneYSize ( sensorID );
-  int xBin         =  geo::gGeometry().siPlaneXNpixels( sensorID );
-  int yBin         =  geo::gGeometry().siPlaneYNpixels( sensorID );
+  int xBin         =  2*geo::gGeometry().siPlaneXNpixels( sensorID );
+  //int yBin         =  2*geo::gGeometry().siPlaneYNpixels( sensorID );
+  int yBin;
+  if(sensorID>9&&sensorID<22) {
+  xMin = -60;  // safetyFactor * ( xPosition - ( 0.5 * xSize ));
+  xMax = 60; // safetyFactor * ( xPosition + ( 0.5 * xSize ));
+   
+  yMin = -50; // safetyFactor * ( yPosition - ( 0.5 * ySize ));
+  yMax = 50; // safetyFactor * ( yPosition + ( 0.5 * ySize ));
 
-  xMin = safetyFactor * ( xPosition - ( 0.5 * xSize ));
-  xMax = safetyFactor * ( xPosition + ( 0.5 * xSize ));
 
-  yMin = safetyFactor * ( yPosition - ( 0.5 * ySize ));
-  yMax = safetyFactor * ( yPosition + ( 0.5 * ySize ));
+  //yBin = 200;
+  yBin = 2*geo::gGeometry().siPlaneYNpixels ( sensorID );
+  }
+  else  {
+  yBin = 2*geo::gGeometry().siPlaneYNpixels ( sensorID );
+
+  xMin = -20;  // safetyFactor * ( xPosition - ( 0.5 * xSize ));
+  xMax = 20; // safetyFactor * ( xPosition + ( 0.5 * xSize ));
+
+  yMin = -20; // safetyFactor * ( yPosition - ( 0.5 * ySize ));
+  yMax = 20; // safetyFactor * ( yPosition + ( 0.5 * ySize ));
+  }
 
   xNBin = static_cast< int > ( safetyFactor  * xBin );
   yNBin = static_cast< int > ( safetyFactor  * yBin );

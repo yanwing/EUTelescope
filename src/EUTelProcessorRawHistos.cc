@@ -80,7 +80,8 @@ void EUTelProcessorRawHistos::init() {
 	_iEvt = 0;
 	_noOfEvents = 0;
 	
-	geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+         std::string name("test.root");
+        geo::gGeometry().initializeTGeoDescription(name,true);
 	
 	_sensorIDVec = geo::gGeometry().sensorIDsVec();
 	bookHistos();	

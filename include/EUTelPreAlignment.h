@@ -60,7 +60,7 @@ namespace eutelescope {
       //Get weighted position from 3 neighboring bins
       // as long as we are not on the edges of our histogram:
       if(maxBin== 0 || maxBin== static_cast< int >(histo.size())){ 
-	streamlog_out( WARNING3 ) << "At least one sensor frame might be empty or heavily misaligned. Please check the GEAR file!" << " MaxBin: " << maxBin << " histo.size(): " << histo.size()  << std::endl; 
+	streamlog_out( WARNING3 ) << "At least one sensor frame might be empty or heavily misaligned. Please check the GEAR file!" << " MaxBin: " << maxBin << " histo.size(): " << histo.size() << " Sensor ID " << iden  << std::endl; 
 	return static_cast< float >(maxBin);
       }
       float weight(0.0);
@@ -86,7 +86,7 @@ namespace eutelescope {
   public:
     PreAligner(float pitchX, float pitchY, float zPos, int iden): 
       pitchX(pitchX), pitchY(pitchY), 
-      minX(-40.0), maxX(40), range(maxX - minX),
+      minX(-60.0), maxX(60), range(maxX - minX),
       zPos(zPos), iden(iden){
       histoX.assign( int( range / pitchX ), 0);
       histoY.assign( int( range / pitchY ), 0);

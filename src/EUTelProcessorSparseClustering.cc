@@ -123,8 +123,13 @@ void EUTelProcessorSparseClustering::init() {
 	printParameters ();
 
 	//init new geometry
-	geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+	streamlog_out( DEBUG5 ) << "Begin InitializeTGeoDescription!" << std::endl;
 
+         std::string name("test.root");
+         geo::gGeometry().initializeTGeoDescription(name,true);
+ 
+
+	streamlog_out( DEBUG5 ) << "InitializeTGeoDescription finished!" << std::endl;
 	//set to zero the run and event counters
 	_iRun = 0;
 	_iEvt = 0;
@@ -250,7 +255,7 @@ void EUTelProcessorSparseClustering::processEvent (LCEvent * event)
 
 	//HERE WE ACTUALLY CALL THE CLUSTERING ROUTINE:
 	sparseClustering(evt, pulseCollection);
-
+        streamlog_out ( DEBUG2 ) <<"sparsClustering for evt "<<evt<<std::endl;
 	// if the pulseCollection is not empty add it to the event
 	if ( ! pulseCollectionExists && ( pulseCollection->size() != _initialPulseCollectionSize )) 
 	{

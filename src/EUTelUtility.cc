@@ -108,6 +108,9 @@ namespace eutelescope {
 			case kEUTelMuPixel:
 				return	std::unique_ptr<EUTelTrackerDataInterfacer>
 					( new EUTelTrackerDataInterfacerImpl<EUTelMuPixel>(data) );
+                        case kEUTelAnnulusPixel:
+                                return  std::unique_ptr<EUTelTrackerDataInterfacer>
+                                        ( new EUTelTrackerDataInterfacerImpl<EUTelAnnulusPixel>(data) );
 			default:
 				throw UnknownDataTypeException("Unknown sparsified pixel");
 		}

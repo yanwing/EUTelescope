@@ -141,7 +141,9 @@ void EUTelCorrelator::init() {
   // usually a good idea to
   printParameters ();
 
-  geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+  // Getting access to geometry description
+  std::string name("test.root");
+  geo::gGeometry().initializeTGeoDescription(name,false);
 
   _sensorIDVec.clear();
   _sensorIDVec = geo::gGeometry().sensorIDsVec();
@@ -708,7 +710,7 @@ void EUTelCorrelator::bookHistos() {
 
     streamlog_out ( DEBUG5 ) <<  "Booking histograms" << endl;
 
-        std::unique_ptr<EUTelHistogramManager> histoMgr = std::make_unique<EUTelHistogramManager>(_histoInfoFileName);
+        auto_ptr<EUTelHistogramManager> histoMgr( new EUTelHistogramManager( _histoInfoFileName ));
         EUTelHistogramInfo    * histoInfo;
         bool                    isHistoManagerAvailable;
 
@@ -737,12 +739,21 @@ void EUTelCorrelator::bookHistos() {
         int colNBin   =  64 ;
         double colMin =   0.;
         double colMax =  64.;
+        
 
         int rowNBin   =  64 ;
         double rowMin =   0.;
         double rowMax =  64.;
 
+        double xMin1 = 0;
+        double xMin2 = 0;
+        double xMax1 = 64;
+        double xMax2 = 64;
 
+        double yMin1 = 0;
+        double yMin2 = 0;
+        double yMax1 = 64;
+        double yMax2 = 64;
     // create all the directories first
     vector< string > dirNames;
 
@@ -876,12 +887,25 @@ void EUTelCorrelator::bookHistos() {
             tempHistoTitle =  "HitX/" +  _hitXCorrelationHistoName + "_d" + to_string( row ) + "_d" +  to_string( col );
 
             histoInfo = histoMgr->getHistogramInfo(_hitXCorrelationHistoName);
+           // colNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xBin : 100   ;    
+           // colMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneXSize(row);
+           // colMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneXSize(row);
+           // rowNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yBin : 100   ;    
+           // rowMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMin : -0.5* geo::gGeometry().siPlaneXSize(col);
+           // rowMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMax :  0.5* geo::gGeometry().siPlaneXSize(col);
+            
+            xMin1   = 	   ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneXSize(row); 
+            xMin2   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneXSize(col); 
+            xMax1   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneXSize(row);
+            xMax2   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneXSize(col);
+            
+
             colNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xBin : 100   ;    
-            colMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneXSize(row);
-            colMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneXSize(row);
+            colMin   =      ( xMin1 < xMin2 ) ? xMin1 : xMin2;
+            colMax   =      ( xMax1 > xMax2 ) ? xMax1 : xMax2;
             rowNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yBin : 100   ;    
-            rowMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMin : -0.5* geo::gGeometry().siPlaneXSize(col);
-            rowMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMax :  0.5* geo::gGeometry().siPlaneXSize(col);
+            rowMin   =      ( xMin1 < xMin2 ) ? xMin1 : xMin2;
+            rowMax   =      ( xMax1 > xMax2 ) ? xMax1 : xMax2;
 
 
             AIDA::IHistogram2D * histo2D =
@@ -907,12 +931,24 @@ void EUTelCorrelator::bookHistos() {
             tempHistoTitle = "HitY/" + _hitYCorrelationHistoName + "_d" + to_string( row ) + "_d" + to_string( col ) ;
  
             histoInfo = histoMgr->getHistogramInfo(_hitYCorrelationHistoName);
+           // colNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xBin : 100   ;    
+           // colMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneYSize(row);
+           // colMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneYSize(row);
+           // rowNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yBin : 100   ;    
+           // rowMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMin : -0.5* geo::gGeometry().siPlaneYSize(col);
+           // rowMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMax :  0.5* geo::gGeometry().siPlaneYSize(col);
+
+            yMin1   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneYSize(row); 
+            yMin2   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneYSize(col); 
+            yMax1   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneYSize(row);
+            yMax2   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneYSize(col);
+            
             colNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xBin : 100   ;    
-            colMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMin : -0.5* geo::gGeometry().siPlaneYSize(row);
-            colMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_xMax :  0.5* geo::gGeometry().siPlaneYSize(row);
+            colMin   =      ( yMin1 < yMin2 ) ? yMin1 : yMin2;
+            colMax   =      ( yMax1 > yMax2 ) ? yMax1 : yMax2;
             rowNBin  =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yBin : 100   ;    
-            rowMin   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMin : -0.5* geo::gGeometry().siPlaneYSize(col);
-            rowMax   =      ( isHistoManagerAvailable && histoInfo ) ? histoInfo->_yMax :  0.5* geo::gGeometry().siPlaneYSize(col);
+            rowMin   =      ( yMin1 < yMin2 ) ? yMin1 : yMin2;
+            rowMax   =      ( yMax1 > yMax2 ) ? yMax1 : yMax2;
 
             histo2D =
               AIDAProcessor::histogramFactory( this )->createHistogram2D( tempHistoName.c_str(), 

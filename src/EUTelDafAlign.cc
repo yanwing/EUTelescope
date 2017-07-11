@@ -194,18 +194,18 @@ void EUTelDafAlign::dafInit() {
     }  else{
       yMax = 9999999;
     }
-    streamlog_out ( MESSAGE5 ) << "xMin " << xMin << " " << xMax << endl;
-    streamlog_out ( MESSAGE5 ) << "yMin " << yMin << " " << yMax << endl;
+    cout << "xMin " << xMin << " " << xMax << endl;
+    cout << "yMin " << yMin << " " << yMax << endl;
     _resX[iden] = make_pair(xMin, xMax);
     _resY[iden] = make_pair(yMin, yMax);
   }
 }
 
-int EUTelDafAlign::checkDutResids(daffitter::TrackCandidate<float,4>& track){
+int EUTelDafAlign::checkDutResids(daffitter::TrackCandidate* track){
   int nHits(0);
   _dutMatches.clear();
   for( size_t ii = 0; ii < _system.planes.size() ; ii++){
-    daffitter::FitPlane<float>& plane = _system.planes.at(ii);
+    daffitter::FitPlane& plane = _system.planes.at(ii);
     int iden = plane.getSensorID();
     if( find(_dutPlanes.begin(), _dutPlanes.end(), iden) == _dutPlanes.end()){ continue; }
     std::pair<float, float> resX = _resX[iden];
@@ -213,22 +213,23 @@ int EUTelDafAlign::checkDutResids(daffitter::TrackCandidate<float,4>& track){
 
     for(size_t w = 0; w < plane.meas.size(); w++){
       float measWeight = 1.0f;
-      daffitter::Measurement<float>& meas = plane.meas.at(w);
-      daffitter::TrackEstimate<float,4>& estim = track.estimates.at(ii);
+      daffitter::Measurement& meas = plane.meas.at(w);
+      daffitter::TrackEstimate* estim = track->estimates.at(ii);
       //Resids 
-      if( (estim.getX() - meas.getX()) < resX.first) { measWeight = 0.0f;}
-      if( (estim.getX() - meas.getX()) > resX.second){ measWeight = 0.0f;}
-      if( (estim.getY() - meas.getY()) < resY.first) { measWeight = 0.0f;}
-      if( (estim.getY() - meas.getY()) > resY.second){ measWeight = 0.0f;}
+      if( (estim->getX() - meas.getX()) < resX.first) { measWeight = 0.0f;}
+      if( (estim->getX() - meas.getX()) > resX.second){ measWeight = 0.0f;}
+      if( (estim->getY() - meas.getY()) < resY.first) { measWeight = 0.0f;}
+      if( (estim->getY() - meas.getY()) > resY.second){ measWeight = 0.0f;}
       if(measWeight > 0.5){ 
 	nHits++; 
 	if( not meas.goodRegion() ){  measWeight = 0.0f;  }
       }
-      track.weights.at(ii)(w) = measWeight;
+      plane.weights(w) = measWeight;
       if( measWeight > 0.5 ){
 	_dutMatches.push_back(ii);
       }
     }
+    track->weights.at(ii) = plane.weights;
   }
   return(nHits);
 }
@@ -237,7 +238,7 @@ void EUTelDafAlign::dafEvent (LCEvent* /*event*/) {
   //Check found tracks
   for(size_t ii = 0; ii < _system.getNtracks(); ii++ ){
     //run track fitter
-    _nCandidates++;
+    _nClusters++;
     _system.fitPlanesInfoDaf(_system.tracks.at(ii));
     //Check resids, intime, angles
     if(not checkTrack( _system.tracks.at(ii))) { continue;};
@@ -253,7 +254,7 @@ void EUTelDafAlign::dafEvent (LCEvent* /*event*/) {
 	for(size_t dut = 0; dut < _dutMatches.size(); dut++){
 	  _system.planes.at( _dutMatches.at(dut) ).include();
 	  _system.weightToIndex(_system.tracks.at(ii));
-	  _system.fitPlanesInfoBiased(_system.tracks.at(ii));
+	  _system.fitPlanesInfo(_system.tracks.at(ii));
 	  //Add to mille bin file
 	  addToMille( _system.tracks.at(ii));
 	  _system.planes.at( _dutMatches.at(dut) ).exclude();
@@ -263,7 +264,7 @@ void EUTelDafAlign::dafEvent (LCEvent* /*event*/) {
   }
 }
 
-void EUTelDafAlign::addToMille(daffitter::TrackCandidate<float,4>& track){
+void EUTelDafAlign::addToMille(daffitter::TrackCandidate* track){
   const int nLC = 4; //number of local parameters
   const int nGL = _system.planes.size() * 5; // number of global parameters
   
@@ -278,19 +279,19 @@ void EUTelDafAlign::addToMille(daffitter::TrackCandidate<float,4>& track){
   for(int ii = 0; ii < nLC; ii++){ derLC[ii] = 0; }
 
   for(size_t ii = 0; ii < _system.planes.size(); ii++){
-    daffitter::FitPlane<float>& pl = _system.planes.at(ii);
+    daffitter::FitPlane& pl = _system.planes.at(ii);
     if(pl.isExcluded() ) { continue; }
-    int index = track.indexes.at(ii);
+    int index = track->indexes.at(ii);
     //index < 0 means plane is excluded
     if( index < 0) { continue; }
-    daffitter::Measurement<float>& meas = pl.meas.at(index);
-    daffitter::TrackEstimate<float,4>& estim = track.estimates.at(ii);
+    daffitter::Measurement& meas = pl.meas.at(index);
+    daffitter::TrackEstimate* estim = track->estimates.at(ii);
     derGL[(ii * 5)    ] = -1; //Derivatives of residuals w.r.t. shift in x
     derGL[(ii * 5) + 2] = meas.getY(); //Derivatives of residuals w.r.t. z rotations
     derGL[(ii * 5) + 3] = meas.getX(); //Derivatives of residuals w.r.t. scale of x axis
     derLC[0] = 1; //Derivatives of fit pos w.r.t. x
     derLC[2] = pl.getMeasZ(); //Derivatives of fit pos w.r.t. dx/dz
-    _mille->mille(nLC, derLC, nGL, derGL, label, estim.getX()- meas.getX(), pl.getSigmaX());
+    _mille->mille(nLC, derLC, nGL, derGL, label, estim->getX()- meas.getX(), pl.getSigmaX());
 
     derGL[(ii * 5)]     = 0;
     derGL[(ii * 5) + 2] = 0;
@@ -305,7 +306,7 @@ void EUTelDafAlign::addToMille(daffitter::TrackCandidate<float,4>& track){
     derLC[1] = 1; //Derivatives of fit pos w.r.t. y
     derLC[3] = pl.getMeasZ(); //Derivatives of fit pos w.r.t. dy/dz
     
-    _mille->mille(nLC, derLC, nGL, derGL, label, estim.getY() - meas.getY(), pl.getSigmaY());
+    _mille->mille(nLC, derLC, nGL, derGL, label, estim->getY() - meas.getY(), pl.getSigmaY());
     
     derGL[(ii * 5) + 1] = 0;
     derGL[(ii * 5) + 2] = 0;
@@ -334,7 +335,7 @@ void EUTelDafAlign::generatePedeSteeringFile(){
   steerFile << endl;
   steerFile << "Parameter" << endl;
   for(size_t ii = 0; ii < _system.planes.size(); ii++){
-    daffitter::FitPlane<float>& pl = _system.planes.at(ii);
+    daffitter::FitPlane& pl = _system.planes.at(ii);
     int iden = pl.getSensorID();
     steerLine(steerFile, (ii * 5) + 1, iden, _translateX);
     steerLine(steerFile, (ii * 5) + 2, iden, _translateY);

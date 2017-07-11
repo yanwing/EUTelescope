@@ -65,7 +65,9 @@ void EUTelPedeGEAR::init() {
 	_iEvt = 0;
 
 	//Getting access to geometry description
-	geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+	std::string name("test.root");
+	geo::gGeometry().initializeTGeoDescription(name,false);
+
 
 	//check if the GEAR manager pointer is not null!
 	if( Global::GEAR == 0x0 ) {
@@ -148,7 +150,7 @@ void EUTelPedeGEAR::init() {
 }
 
 void EUTelPedeGEAR::processRunHeader(LCRunHeader* rdr) {
-	auto header = std::make_unique<EUTelRunHeaderImpl>(rdr);
+	std::auto_ptr<EUTelRunHeaderImpl> header ( new EUTelRunHeaderImpl (rdr) );
 	header->addProcessor( type() ) ;
 
 	// this is the right place also to check the geometry ID. This is a
@@ -277,7 +279,7 @@ void EUTelPedeGEAR::end() {
 		streamlog_out( MESSAGE6 ) 	<< "Reading back the " << millepedeResFileName << std::endl;
 
 		//open the millepede ASCII output file
-		std::ifstream millepede( millepedeResFileName.c_str() );
+		ifstream millepede( millepedeResFileName.c_str() );
 
 
 		if( millepede.bad() || !millepede.is_open() ) {

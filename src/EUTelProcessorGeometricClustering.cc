@@ -120,7 +120,9 @@ void EUTelProcessorGeometricClustering::init() {
 	printParameters ();
 
 	//init new geometry
-    geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+         std::string name("test.root");
+         geo::gGeometry().initializeTGeoDescription(name,true);
+ 
 
 	//set to zero the run and event counters
 	_iRun = 0;
@@ -173,6 +175,17 @@ void EUTelProcessorGeometricClustering::readCollections(LCEvent* event) {
 	} catch ( lcio::DataNotAvailableException& e ) {
 		streamlog_out ( DEBUG4 ) << "_zsInputDataCollectionVec: " << _zsDataCollectionName.c_str() << " not found in event " << event->getEventNumber() << std::endl;
 	}
+
+        try
+        {
+                event->getCollection( _zsDataCollectionName ) ;
+        }
+        catch (lcio::DataNotAvailableException& e )
+        {
+                streamlog_out(MESSAGE2) << "The current event doesn't contain nZS data collections: skip # " << event->getEventNumber() << std::endl;
+                throw SkipEventException(this);
+        }
+
 }
 
 void EUTelProcessorGeometricClustering::processEvent(LCEvent* event) {
@@ -347,7 +360,7 @@ void EUTelProcessorGeometricClustering::geometricClustering(LCEvent * evt, LCCol
 		std::vector<EUTelGeometricPixel> newlyAdded;
 		//We now cluster those hits together
 		while( !hitPixelVec.empty() )
-		  {
+		{
 		    // prepare a TrackerData to store the cluster candidate
 		    std::unique_ptr<TrackerDataImpl> zsCluster = std::make_unique<TrackerDataImpl>();
 		    // prepare a reimplementation of sparsified cluster

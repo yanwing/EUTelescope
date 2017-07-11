@@ -129,6 +129,7 @@ namespace eutelescope {
     else if ( type == kEUTelSimpleSparsePixel ) os << "kEUTelSimpleSparsePixel";
     else if ( type == kEUTelGenericSparsePixel ) os << "kEUTelGenericSparsePixel";
     else if ( type == kEUTelGeometricPixel ) os << "kEUTelGeometricPixel";
+    else if ( type == kEUTelAnnulusPixel ) os << "kEUTelAnnulusPixel";
     // add here your type
     else if ( type == kUnknownPixelType ) os << "kUnknownPixelType";
     os << " (" << static_cast<int> (type ) << ")";

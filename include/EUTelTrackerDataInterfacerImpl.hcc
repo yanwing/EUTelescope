@@ -157,6 +157,29 @@ namespace eutelescope {
 		return pixel;
 	}
 
+
+//***********************************************Annulus pixel*************************************************
+         template<>
+         inline EUTelAnnulusPixel* EUTelTrackerDataInterfacerImpl<EUTelAnnulusPixel>::getSparsePixelAt(unsigned int index, EUTelAnnulusPixel* pixel ) const
+         {
+                 if ( index * _nElement + 10 > _trackerData->getChargeValues().size() ) return 0x0;
+                 pixel->setXCoord( static_cast<short>( _trackerData->getChargeValues()[index * _nElement] ) );
+                 pixel->setYCoord( static_cast<short>( _trackerData->getChargeValues()[index * _nElement + 1] ) );
+                 pixel->setSignal( _trackerData->getChargeValues()[index * _nElement + 2] );
+                 pixel->setTime(   static_cast<short>( _trackerData->getChargeValues()[index * _nElement + 3] ) );
+		 pixel->setPosX( _trackerData->getChargeValues()[index * _nElement + 4] );
+		 pixel->setPosY( _trackerData->getChargeValues()[index * _nElement + 5] );
+ 
+                 pixel->setRmin( _trackerData->getChargeValues()[index * _nElement + 6] );
+                 pixel->setRmax( _trackerData->getChargeValues()[index * _nElement + 7] );
+                 pixel->setdphi( _trackerData->getChargeValues()[index * _nElement + 8] );
+                 pixel->setr( _trackerData->getChargeValues()[index * _nElement + 9] );
+                 pixel->setang( _trackerData->getChargeValues()[index * _nElement + 10] );
+ 
+                 return pixel;
+         }
+
+
 	template<>
 	inline EUTelMuPixel* EUTelTrackerDataInterfacerImpl<EUTelMuPixel>::getSparsePixelAt(unsigned int index, EUTelMuPixel* pixel ) const
 	{
@@ -233,6 +256,41 @@ namespace eutelescope {
 								));
 	}
 
+//************************************************Annulus pixel************************************************************
+        template<>
+        inline void EUTelTrackerDataInterfacerImpl<EUTelAnnulusPixel>::addSparsePixel(EUTelAnnulusPixel* pixel)
+        {
+               //add values to lcio charge vector
+               _trackerData->chargeValues().push_back( static_cast<float>(pixel->getXCoord()) );
+               _trackerData->chargeValues().push_back( static_cast<float>(pixel->getYCoord()) );
+               _trackerData->chargeValues().push_back( static_cast<float>(pixel->getSignal()) );
+               _trackerData->chargeValues().push_back( static_cast<float>(pixel->getTime()) );
+ 
+               _trackerData->chargeValues().push_back( pixel->getPosX() );
+               _trackerData->chargeValues().push_back( pixel->getPosY() );
+               _trackerData->chargeValues().push_back( pixel->getRmin() );
+               _trackerData->chargeValues().push_back( pixel->getRmax() );
+               _trackerData->chargeValues().push_back( pixel->getdphi() );
+               _trackerData->chargeValues().push_back( pixel->getr() );
+               _trackerData->chargeValues().push_back( pixel->getang() );
+
+              //add pixel to local pixel vector
+               _pixelVec.push_back(EUTelAnnulusPixel(        static_cast<short>(pixel->getXCoord()),
+                                                               static_cast<short>(pixel->getYCoord()),
+                                                               static_cast<float>(pixel->getSignal()),
+                                                               static_cast<short>(pixel->getTime() ),
+                                                               pixel->getPosX(),
+                                                               pixel->getPosY(),
+                                                               pixel->getRmin(),
+                                                               pixel->getRmax(),
+                                                               pixel->getdphi(),
+                                                               pixel->getr(),
+                                                               pixel->getang()
+                                                               ));
+       }
+
+
+
 	template<>
 	inline void EUTelTrackerDataInterfacerImpl<EUTelMuPixel>::addSparsePixel(EUTelMuPixel* pixel)
 	{
@@ -302,6 +360,29 @@ namespace eutelescope {
 									));
 		}
 	}
+
+//***************************************************Annulus pixel***************************************************************
+	template<>
+	inline void EUTelTrackerDataInterfacerImpl< EUTelAnnulusPixel>::fillPixelVec()
+	{
+		for( unsigned int index = 0 ; index < _trackerData->getChargeValues().size() ; index += 11 )
+		{
+			_pixelVec.push_back(EUTelAnnulusPixel(	static_cast<short>(_trackerData->getChargeValues()[ index ] ),
+									static_cast<short>(_trackerData->getChargeValues()[ index + 1 ]),
+									static_cast<float>(_trackerData->getChargeValues()[ index + 2 ]),
+									static_cast<short>(_trackerData->getChargeValues()[ index + 3 ]),
+									_trackerData->getChargeValues()[ index + 4 ],
+									_trackerData->getChargeValues()[ index + 5 ],
+									_trackerData->getChargeValues()[ index + 6 ],
+									_trackerData->getChargeValues()[ index + 7 ],
+									_trackerData->getChargeValues()[ index + 8 ],
+									_trackerData->getChargeValues()[ index + 9 ],
+									_trackerData->getChargeValues()[ index + 10 ]
+									));
+		}
+	}
+
+
 
 	template<>
 	inline void EUTelTrackerDataInterfacerImpl< EUTelMuPixel>::fillPixelVec()

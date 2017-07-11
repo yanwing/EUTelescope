@@ -14,6 +14,7 @@
 #include "EUTelSimpleSparsePixel.h"
 #include "EUTelGenericSparsePixel.h"
 #include "EUTelGeometricPixel.h"
+#include "EUTelAnnulusPixel.h"
 #include "EUTelMuPixel.h"
 #include "EUTelTrackerDataInterfacer.h"
 

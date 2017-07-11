@@ -28,6 +28,7 @@ class EUTelGenericPixGeoDescr {
 		* Since every sensor has this information, this constructor has to be called whenever creating an instance of a derived class
 		*/
 		EUTelGenericPixGeoDescr(double sizeX, double sizeY, double sizeZ, int minX, int maxX, int minY, int maxY, double radLen);
+   
 
 	  /** Default deconstructor declared to be virtual */
 		virtual ~EUTelGenericPixGeoDescr() {};
@@ -90,6 +91,7 @@ class EUTelGenericPixGeoDescr {
 		int _minIndexX, _minIndexY;
 		int _maxIndexX, _maxIndexY;
 		double _radLength;
+
 
 	private:
 	  /** Empty constructor is private, no need to ever call it */

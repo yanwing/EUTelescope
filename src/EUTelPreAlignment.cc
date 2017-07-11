@@ -126,20 +126,32 @@ void EUTelPreAlign::init () {
 			basePath.append("/");
 
 			tempHistoName = "hitXCorr_fixed_to_" + to_string( sensorID ) ;
+                        if(sensorID>9 && sensorID<22){ 
+			AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 500 , -50., 50.);
+			_hitXCorr.insert( make_pair( sensorID, histo1Da) );
+                        }
+                        else{
 			AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 100 , -10., 10.);
 			_hitXCorr.insert( make_pair( sensorID, histo1Da) );
+                        }
 
 			tempHistoName = "hitYCorr_fixed_to_" + to_string( sensorID) ;
-			AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 100 , -10., 10.) ;
+                        if(sensorID>9 && sensorID<22){
+			AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 600 , -60., 60.) ;
 			_hitYCorr.insert( make_pair( sensorID, histo1Db) );
+                        }
+                        else{
+			AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 100 , -10., 10.);
+			_hitYCorr.insert( make_pair( sensorID, histo1Db) );
+                        }
 		}
 	}
 	#endif
 }
 
 void EUTelPreAlign::processRunHeader(LCRunHeader* rdr) {
-	std::unique_ptr<EUTelRunHeaderImpl> runHeader = std::make_unique<EUTelRunHeaderImpl>(rdr);
-    runHeader->addProcessor( type() );
+	auto_ptr<EUTelRunHeaderImpl> runHeader ( new EUTelRunHeaderImpl(rdr) ) ;
+	runHeader->addProcessor( type() );
 	++_iRun;
 }
 
@@ -172,7 +184,7 @@ void  EUTelPreAlign::FillHotPixelMap(LCEvent *event)
 
       if( type  ==  kEUTelGenericSparsePixel )
 	{  
-	  auto m26Data = std::make_unique<EUTelSparseClusterImpl<EUTelGenericSparsePixel>>(hotPixelData);
+	  auto_ptr<EUTelSparseClusterImpl< EUTelGenericSparsePixel > > m26Data( new EUTelSparseClusterImpl< EUTelGenericSparsePixel >   ( hotPixelData ) );
 
 	  std::vector<EUTelGenericSparsePixel*> m26PixelVec;
 	  EUTelGenericSparsePixel m26Pixel;
@@ -257,7 +269,6 @@ void EUTelPreAlign::processEvent(LCEvent* event)
 								{
 
 										PreAligner& pa = _preAligners.at(ii);
-
 										if( pa.getIden() != iHitID  ) { continue; }
 
 										gotIt = true;
@@ -271,6 +282,7 @@ void EUTelPreAlign::processEvent(LCEvent* event)
 														(_residualsXMin[idZ] < correlationX ) && ( correlationX < _residualsXMax[idZ]) &&
 														(_residualsYMin[idZ] < correlationY ) && ( correlationY < _residualsYMax[idZ]) 
 										  ) {
+
 												residX.push_back( correlationX );
 												residY.push_back( correlationY );
 												prealign.push_back(&pa);
@@ -285,7 +297,6 @@ void EUTelPreAlign::processEvent(LCEvent* event)
 
 						if( prealign.size() > static_cast< unsigned int >(_minNumberOfCorrelatedHits) && residX.size() == residY.size() ) {
 								for( unsigned int ii = 0 ;ii < prealign.size(); ii++ ) {
-
 										prealign[ii]->addPoint( residX[ii], residY[ii] );
 
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
@@ -416,10 +427,25 @@ void EUTelPreAlign::end()
 						continue; 
 				}
 		}
+		
+		
+/*
+		std::cout<< "\n\n getIden>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
+		for(auto &e: _preAligners){
+		  std::cout<<e.getIden()<<"  "<<std::endl;
+		}
+		std::cout<< "\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
+		std::cout<< "\n\n _ExcludedPlanes>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
+		for(auto &e: _ExcludedPlanes){
+		  std::cout<<e<<"  "<<std::endl;
+		}
+		std::cout<< "\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
 
-
+*/
+		
 		for(size_t ii = 0 ; ii < _preAligners.size(); ii++){
 				int sensorID = _preAligners.at(ii).getIden();
+ //                               std::cout<<"Sensor ID " << sensorID <<std::endl; 
 				std::vector<int>::iterator it = find(_ExcludedPlanes.begin(),_ExcludedPlanes.end(),sensorID);
 				std::vector<int>::iterator itXCoord = find(_ExcludedPlanesXCoord.begin(),_ExcludedPlanesXCoord.end(),sensorID);
 				std::vector<int>::iterator itYCoord = find(_ExcludedPlanesYCoord.begin(),_ExcludedPlanesYCoord.end(),sensorID);
@@ -428,6 +454,7 @@ void EUTelPreAlign::end()
 
 				if(it == _ExcludedPlanes.end())
 				{
+                                                std::cout<<"Included Sensor ID " << sensorID <<std::endl; 
 						if( itXCoord == _ExcludedPlanesXCoord.end() && abs( _preAligners.at(ii).getPeakX() ) < 1000 )
 								constant->setXOffset( -1.0* _preAligners.at(ii).getPeakX() );
 						else
@@ -446,15 +473,22 @@ void EUTelPreAlign::end()
 
 				constant->setSensorID( sensorID );
 				constantsCollection->push_back( constant );
-
+              			double updatedXOff;
+            		        double updatedYOff;
 				//Also update the EUTelGeometry descr.
-				double updatedXOff = geo::gGeometry().siPlaneXPosition(sensorID) + _preAligners.at(ii).getPeakX();
-				double updatedYOff = geo::gGeometry().siPlaneYPosition(sensorID) + _preAligners.at(ii).getPeakY();
-
+				if(it == _ExcludedPlanes.end()){///Only want to update if needed. Otherwise we get a pointless warning
+             			 updatedXOff = geo::gGeometry().siPlaneXPosition(sensorID) + _preAligners.at(ii).getPeakX();
+                   		 updatedYOff = geo::gGeometry().siPlaneYPosition(sensorID) + _preAligners.at(ii).getPeakY();
+                                }else{
+                 		  updatedXOff=0;
+                  		  updatedYOff=0;
+               			 }
 				geo::gGeometry().setPlaneXPosition(sensorID, updatedXOff);
 				geo::gGeometry().setPlaneYPosition(sensorID, updatedYOff);
 
-				streamlog_out ( MESSAGE5 ) << (*constant) << endl;
+		//		std::cout<< "\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"<<std::endl;
+		//		std::cout<< "ssensorID: Xoff: Yoff <"<<sensorID<<" : "<<updatedXOff<<" : "<<updatedYOff<<">"<<std::endl;
+				streamlog_out ( DEBUG0 ) << "Offset for SensorID = "<<sensorID<<" is "<<(*constant) << endl;
 		}
 
 		//if we dont dump into the new gear file, we write out the old database

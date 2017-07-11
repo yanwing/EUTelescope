@@ -45,13 +45,15 @@ _undoAlignment(false)
 		registerOptionalParameter("Undo Alignment (boolean)", "Set to true to undo the alignment instead", _undoAlignment, bool(false));
 }
 
-void EUTelProcessorCoordinateTransformHits::init() {
-		geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
+void EUTelProcessorCoordinateTransformHits::init()
+{
+		std::string geoFilename = EUTELESCOPE::GEOFILENAME;
+		geo::gGeometry().initializeTGeoDescription(geoFilename, false);
 }
 
 void EUTelProcessorCoordinateTransformHits::processRunHeader(LCRunHeader* rdr)
 {
-		std::unique_ptr<EUTelRunHeaderImpl> header = std::make_unique<EUTelRunHeaderImpl>(rdr);
+		std::auto_ptr<EUTelRunHeaderImpl> header( new EUTelRunHeaderImpl(rdr) );
 
 		// this is the right place also to check the geometry ID. This is a
 		// unique number identifying each different geometry used at the
@@ -135,7 +137,10 @@ void EUTelProcessorCoordinateTransformHits::processEvent(LCEvent* event)
 			if( !(properties & kHitInGlobalCoord) && !_undoAlignment )
 			{
 				streamlog_out(DEBUG5) << "Transforming hit from local to global!" << std::endl;
+              //  std::cout<<"Local Sensor: " << sensorID << " " << inputPos[0]<< " " << inputPos[1]<< " " << inputPos[2]<<std::endl;
 				geo::gGeometry().local2Master(sensorID, inputPos, outputPos);
+              //  std::cout<<"Global Sensor: " << sensorID << " " << outputPos[0]<< " " << outputPos[1]<< " " << outputPos[2]<<std::endl;
+
 			}
 			else if( (properties & kHitInGlobalCoord) && _undoAlignment )
 			{

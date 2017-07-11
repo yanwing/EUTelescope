@@ -103,6 +103,7 @@ void EUTelProcessorNoisyPixelFinder::initializeHitMaps() {
 			int minX, minY, maxX, maxY;
 			minX = minY = maxX = maxY = 0;
 			geoDescr->getPixelIndexRange( minX, maxX, minY, maxY );
+                        //std::cout<<">>>>>>"<<sensorID<<"  "<<minX<<"  "<<maxX<<"  "<<minY<<"  "<<maxY<<std::endl;
 
 			//a sensor structs holds all the helpful information
 			sensor thisSensor;
@@ -146,8 +147,10 @@ void EUTelProcessorNoisyPixelFinder::init() {
 	_iRun = 0;
 	_iEvt = 0;
 
-	geo::gGeometry().initializeTGeoDescription(EUTELESCOPE::GEOFILENAME, EUTELESCOPE::DUMPGEOROOT);
-
+         std::string name("test.root");
+         geo::gGeometry().initializeTGeoDescription(name,true);
+ 
+   
 	//and use it to prepare the hit maps
 	initializeHitMaps();
 }
@@ -173,7 +176,7 @@ void EUTelProcessorNoisyPixelFinder::noisyPixelFinder(EUTelEventImpl* evt) {
 			// get the TrackerData and guess which kind of sparsified data it contains.
 			TrackerDataImpl* zsData = dynamic_cast<TrackerDataImpl*>( zsInputCollectionVec->getElementAt(iDetector) );
 			int sensorID            = static_cast<int>( cellDecoder(zsData)["sensorID"] );
-
+ 
 			sensor* currentSensor = &_sensorMap[sensorID];
 			std::vector<std::vector<int>>* hitArray = &_hitVecMap[sensorID];
 
@@ -201,6 +204,7 @@ void EUTelProcessorNoisyPixelFinder::noisyPixelFinder(EUTelEventImpl* evt) {
 				int indexX = pixel->getXCoord() - currentSensor->offX;
 				int indexY = pixel->getYCoord() - currentSensor->offY;
 
+                                //streamlog_out (MESSAGE2) <<"indexX = "<<indexX<<" indexY = "<<indexY<<std::endl;
 				try {
 					//increment the hit counter for this pixel
 					(hitArray->at(indexX)).at(indexY)++;
