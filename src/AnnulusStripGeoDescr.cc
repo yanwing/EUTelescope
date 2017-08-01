@@ -1,5 +1,6 @@
 #include "AnnulusStripGeoDescr.h"
 #include <cmath>
+#include <iostream>
 
 
 namespace eutelescope {
@@ -82,8 +83,10 @@ AnnulusStripGeoDescr::AnnulusStripGeoDescr( int xPixel, int yPixel, double xSize
       //return path to the pixel, don't forget to shift indices by +1+
       if(x<512) 
       snprintf( buffer, 100, "/sensarea_box_1/sensarea_strip_%d", x+1);
+      else if(x>=512 && x<_maxIndexX + 256 )
+      snprintf( buffer, 100, "/sensarea_box_1/sensarea_strip_%d", x+1-256);
       else
-      snprintf( buffer, 100, "/sensarea_box_1/sensarea_strip_%d", x+1-384);
+      snprintf( buffer, 100, "invalid index");
       return std::string( buffer ); 
     }
   

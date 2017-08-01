@@ -308,8 +308,8 @@ void EUTelProcessorGBLTrackFit::plotResidual(std::map< int, std::map<float, floa
 	    if( sensor_residualerror_it->first == 3){static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameX3p ] ) -> fill(res/reserror);}
 	    if( sensor_residualerror_it->first == 4){static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameX4p ] ) -> fill(res/reserror);}
 	    if( sensor_residualerror_it->first == 5){static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameX5p ] ) -> fill(res/reserror);}
-	    if( sensor_residualerror_it->first == dut1){streamlog_out(MESSAGE5)<<"plane = "<<sensor_residualerror_it->first<<"errorX = "<<reserror<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameXDut1p ] ) -> fill(res/reserror);}
-	    if( sensor_residualerror_it->first == dut2){streamlog_out(MESSAGE5)<<"plane = "<<sensor_residualerror_it->first<<"errorX = "<<reserror<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameXDut2p ] ) -> fill(res/reserror);}
+	    if( sensor_residualerror_it->first == dut1){streamlog_out(DEBUG0)<<"plane = "<<sensor_residualerror_it->first<<"errorX = "<<reserror<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameXDut1p ] ) -> fill(res/reserror);}
+	    if( sensor_residualerror_it->first == dut2){streamlog_out(DEBUG0)<<"plane = "<<sensor_residualerror_it->first<<"errorX = "<<reserror<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameXDut2p ] ) -> fill(res/reserror);}
 	  }else{
 	    streamlog_out(DEBUG5) << "The map is NULL" <<std::endl;
 	  }
@@ -321,8 +321,8 @@ void EUTelProcessorGBLTrackFit::plotResidual(std::map< int, std::map<float, floa
 	  if( sensor_residualerror_it->first == 3){static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameY3p ] ) -> fill(res2/res2error);}
 	  if( sensor_residualerror_it->first == 4){static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameY4p ] ) -> fill(res2/res2error);}
 	  if( sensor_residualerror_it->first == 5){static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameY5p ] ) -> fill(res2/res2error);}
-	  if( sensor_residualerror_it->first == dut1){streamlog_out(MESSAGE5)<<"plane = "<<sensor_residualerror_it->first<<"errorY = "<<res2error<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameYDut1p ] ) -> fill(res2/res2error);}
-	  if( sensor_residualerror_it->first == dut2){streamlog_out(MESSAGE5)<<"plane = "<<sensor_residualerror_it->first<<"errorY = "<<res2error<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameYDut2p ] ) -> fill(res2/res2error);}
+	  if( sensor_residualerror_it->first == dut1){streamlog_out(DEBUG0)<<"plane = "<<sensor_residualerror_it->first<<"errorY = "<<res2error<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameYDut1p ] ) -> fill(res2/res2error);}
+	  if( sensor_residualerror_it->first == dut2){streamlog_out(DEBUG0)<<"plane = "<<sensor_residualerror_it->first<<"errorY = "<<res2error<<std::endl;static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_residGblFitHistNameYDut2p ] ) -> fill(res2/res2error);}
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

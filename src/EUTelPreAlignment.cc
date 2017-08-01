@@ -126,7 +126,7 @@ void EUTelPreAlign::init () {
 			basePath.append("/");
 
 			tempHistoName = "hitXCorr_fixed_to_" + to_string( sensorID ) ;
-                        if(sensorID>9 && sensorID<22){ 
+                        if(sensorID>9 && sensorID<26){ 
 			AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 500 , -50., 50.);
 			_hitXCorr.insert( make_pair( sensorID, histo1Da) );
                         }
@@ -136,7 +136,7 @@ void EUTelPreAlign::init () {
                         }
 
 			tempHistoName = "hitYCorr_fixed_to_" + to_string( sensorID) ;
-                        if(sensorID>9 && sensorID<22){
+                        if(sensorID>9 && sensorID<26){
 			AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 600 , -60., 60.) ;
 			_hitYCorr.insert( make_pair( sensorID, histo1Db) );
                         }
@@ -454,7 +454,7 @@ void EUTelPreAlign::end()
 
 				if(it == _ExcludedPlanes.end())
 				{
-                                                std::cout<<"Included Sensor ID " << sensorID <<std::endl; 
+                                                //std::cout<<"Included Sensor ID " << sensorID <<std::endl; 
 						if( itXCoord == _ExcludedPlanesXCoord.end() && abs( _preAligners.at(ii).getPeakX() ) < 1000 )
 								constant->setXOffset( -1.0* _preAligners.at(ii).getPeakX() );
 						else

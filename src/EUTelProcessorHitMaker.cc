@@ -598,7 +598,7 @@ void EUTelProcessorHitMaker::bookHistos(int sensorID) {
 
   int xNBin =    2*geo::gGeometry().siPlaneXNpixels ( sensorID );
   int yNBin;
-  //if(sensorID>9&&sensorID<22) yNBin = 500;
+  //if(sensorID>9&&sensorID<26) yNBin = 500;
   //else 
   yNBin = 2*geo::gGeometry().siPlaneYNpixels ( sensorID );
 
@@ -625,7 +625,7 @@ void EUTelProcessorHitMaker::bookHistos(int sensorID) {
   int xBin         =  2*geo::gGeometry().siPlaneXNpixels( sensorID );
   //int yBin         =  2*geo::gGeometry().siPlaneYNpixels( sensorID );
   int yBin;
-  if(sensorID>9&&sensorID<22) {
+  if(sensorID>9&&sensorID<26) {
   xMin = -60;  // safetyFactor * ( xPosition - ( 0.5 * xSize ));
   xMax = 60; // safetyFactor * ( xPosition + ( 0.5 * xSize ));
    

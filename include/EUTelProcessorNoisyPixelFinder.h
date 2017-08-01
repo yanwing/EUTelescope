@@ -152,6 +152,12 @@ protected:
     //! Histogram with the firing cumulative 1D distribution
     static std::string _firing1DHistoName;
 
+    //! Histogram with the firing frequency 2D distribution
+    static std::string _allfiring2DHistoName;
+
+    //! Histogram with the firing cumulative 1D distribution
+    static std::string _allfiring1DHistoName;
+    
     //! book histogram method
     void bookAndFillHistos();
 #endif
@@ -203,6 +209,13 @@ protected:
      */
     std::map<int, std::vector<EUTelGenericSparsePixel>> _noisyPixelMap;
 
+
+    //! Map for storing all pixels in a std::vector as a value
+    /*! The key is once again the sensorID.
+    */
+   std::map<int, std::vector<EUTelGenericSparsePixel>> _allPixelMap;
+
+
     //! Current run number.
     /*! This number is used to store the current run number
      */
@@ -219,6 +232,14 @@ protected:
      *  specify for which sensors hot pixels should be determined
      */
     std::vector<int> _sensorIDVec;
+
+
+    //! X index range correction vector
+    /*! Passed as a argument via the steering file, here you
+    *  specify for which sensors X index range should be corrected 
+   */
+    int _XindexRangeOffset;
+
 
     //! Hot Pixel DB output file
     std::string _noisyPixelDBFile;

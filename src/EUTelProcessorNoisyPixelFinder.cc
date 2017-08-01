@@ -56,6 +56,8 @@ namespace eutelescope {
 #if defined(USE_AIDA) || defined(MARLIN_USE_AIDA)
 std::string EUTelProcessorNoisyPixelFinder::_firing2DHistoName = "Firing2D";
 std::string EUTelProcessorNoisyPixelFinder::_firing1DHistoName = "Firing1D";
+std::string EUTelProcessorNoisyPixelFinder::_allfiring2DHistoName = "allFiring2D";
+std::string EUTelProcessorNoisyPixelFinder::_allfiring1DHistoName = "allFiring1D";
 #endif
 
 EUTelProcessorNoisyPixelFinder::EUTelProcessorNoisyPixelFinder(): 
@@ -68,6 +70,7 @@ EUTelProcessorNoisyPixelFinder::EUTelProcessorNoisyPixelFinder():
   _iRun(0),
   _iEvt(0),
   _sensorIDVec(),
+  _XindexRangeOffset(0),
   _noisyPixelDBFile(""),
   _finished(false)
 {
@@ -82,6 +85,8 @@ EUTelProcessorNoisyPixelFinder::EUTelProcessorNoisyPixelFinder():
 
   registerProcessorParameter("MaxAllowedFiringFreq", "This float number [0,1] represents the maximum allowed firing frequency\n"
                              "within the selected number of event per cycle", _maxAllowedFiringFreq, static_cast<float>(0.2) );
+
+  registerProcessorParameter("XindexRangeOffset", "This number corrects the index range in X direction", _XindexRangeOffset, static_cast<int>(0) );
 
   registerOptionalParameter("HotPixelDBFile","This is the name of the LCIO file name with the output noisyPixel db (add .slcio)",
                              _noisyPixelDBFile, std::string("noisyPixel.slcio"));
@@ -116,21 +121,25 @@ void EUTelProcessorNoisyPixelFinder::initializeHitMaps() {
 
 			//this is the 2-dimensional array used to store all the pixels, it is implemented as a vector of vectors
 			//first the x-entries-vector
-			std::vector<std::vector<int>> hitVecP = std::vector<std::vector<int>>( thisSensor.sizeX );
-
+			std::vector<std::vector<int>> hitVecP = std::vector<std::vector<int>>( thisSensor.sizeX + _XindexRangeOffset);
+                        //std::cout<<"XindexRangeOffset = "<<_XindexRangeOffset<<std::endl;
 			//and the y-entries vector
 			for(auto& i: hitVecP) {
 				//resize it now
 				i.resize(thisSensor.sizeY, 0);
 			}
 
-			//collection to later hold the hot pixels
+			//collection to later hold the all pixels
+			std::vector<EUTelGenericSparsePixel> allPixelMap;
+			
+                        //collection to later hold the hot pixels
 			std::vector<EUTelGenericSparsePixel> noisyPixelMap;
 
 			//store all the collections/pointers in the corresponding maps
 		    	_sensorMap[sensorID] = thisSensor;
 			_hitVecMap[sensorID] = hitVecP;
 			_noisyPixelMap[sensorID] = noisyPixelMap;
+			_allPixelMap[sensorID] = allPixelMap;
 		} catch(std::runtime_error& e) {
 			streamlog_out ( ERROR0 ) << "Noisy pixel masker could not retrieve plane " << sensorID << std::endl;
 			streamlog_out ( ERROR0 ) << e.what() << std::endl;
@@ -296,14 +305,17 @@ void EUTelProcessorNoisyPixelFinder::check(LCEvent* /*event*/ ) {
 				{
 					//compute the firing frequency
 					float fireFreq = (float)*yIt/(float)_iEvt;
+					EUTelGenericSparsePixel pixel;
+					pixel.setXCoord(xIt-hitVector->begin() + currentSensor->offX);
+					pixel.setYCoord(yIt - xIt->begin() + currentSensor->offY );
+					pixel.setSignal( fireFreq );
+                                       
+				        _allPixelMap[sensorID].push_back(pixel);
+
 					//if it is larger than the allowed one, we write this pixel into a collection
 					if(fireFreq > _maxAllowedFiringFreq) {
 						streamlog_out ( MESSAGE3 )	<< "Pixel: " << xIt-hitVector->begin() + currentSensor->offX << "|" 
 										<< yIt - xIt->begin() + currentSensor->offY  << " fired " << fireFreq << std::endl;
-						EUTelGenericSparsePixel pixel;
-						pixel.setXCoord(xIt-hitVector->begin() + currentSensor->offX);
-						pixel.setYCoord(yIt - xIt->begin() + currentSensor->offY );
-						pixel.setSignal( fireFreq );
 						//writing out is done here
 						_noisyPixelMap[sensorID].push_back(pixel);
 					}
@@ -406,10 +418,11 @@ void EUTelProcessorNoisyPixelFinder::bookAndFillHistos() {
 		tempHistoName = _firing2DHistoName + "_d" + std::to_string(det);
 		sensor* currentSensor = &_sensorMap[det];
 
+
 		//determine range for 2D firing histo
 		int     xBin = currentSensor->sizeX +1 ;
 		double  xMin = static_cast<double >( currentSensor->offX ) - 0.5;
-		double  xMax = static_cast<double >( currentSensor->offX + currentSensor->sizeX) + 0.5;
+		double  xMax = static_cast<double >( currentSensor->offX + currentSensor->sizeX) + 0.5 + _XindexRangeOffset;
 
 		int     yBin = currentSensor->sizeY +1 ;
 		double  yMin = static_cast<double >( currentSensor->offY ) - 0.5;
@@ -424,21 +437,45 @@ void EUTelProcessorNoisyPixelFinder::bookAndFillHistos() {
 		}
 
 		firing2DHisto->setTitle("Firing frequency map of hot pixels (in percent, rounded to the next integer); Pixel Index X; Pixel Index Y; Percent (%)");
+
+                tempHistoName = _allfiring2DHistoName + "_d" + std::to_string(det);
+
+                AIDA::IHistogram2D* allfiring2DHisto = marlin::AIDAProcessor::histogramFactory(this)->createHistogram2D( (basePath + tempHistoName).c_str(),     xBin, xMin, xMax,yBin, yMin, yMax); 
+ 
+                 if(!allfiring2DHisto) {
+                         streamlog_out ( ERROR5 )        << "CreateHistogram2D for " <<  (basePath + tempHistoName).c_str()  << " failed " << std::endl
+                                                         << "Execution stopped, check that your path (" << basePath.c_str() << ")exists  " << std::endl;
+                         return;
+                 }
+		allfiring2DHisto->setTitle("Firing frequency map of all pixels (in percent, rounded to the next integer); Pixel Index X; Pixel Index Y; Percent (%)");
+
+
+
 		tempHistoName = _firing1DHistoName + "_d" + std::to_string(det);
 
 		//range for 1D firing histo
-		int nBin = 101;
-		double min = -0.5;
-		double max = 100.5;
+		int nBin = 1000;//nBin=101;
+		double min = -0.1; //min=-0.5
+		double max = 1.1; //max=100.5
 
 		AIDA::IHistogram1D* firing1DHisto = marlin::AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(),nBin, min, max );
 		firing1DHisto->setTitle("Firing frequency distribution of hot pixels (in percent, rounded to the next integer);Firing Frequency (%); Count (#)");
 
+		tempHistoName = _allfiring1DHistoName + "_d" + std::to_string(det);
+
+		AIDA::IHistogram1D* allfiring1DHisto = marlin::AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(),nBin, min, max );
+		allfiring1DHisto->setTitle("Firing frequency distribution of all pixels (in percent, rounded to the next integer);Firing Frequency (%); Count (#)");
 		//actually fill both histos for each detector
 		for ( auto& pixel: _noisyPixelMap[det]) {
 			firing2DHisto->fill(pixel.getXCoord(), pixel.getYCoord(), pixel.getSignal());
 			firing1DHisto->fill(pixel.getSignal());
 		}
+ 
+                for ( auto& pix: _allPixelMap[det]) {
+                        allfiring2DHisto->fill(pix.getXCoord(), pix.getYCoord(), pix.getSignal());
+                        allfiring1DHisto->fill(pix.getSignal());
+                }
+
 	}//loop over dteectors
 }
 #endif
