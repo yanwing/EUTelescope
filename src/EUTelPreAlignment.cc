@@ -120,30 +120,40 @@ void EUTelPreAlign::init () {
 		// Allow any plane to be the fixed reference:
 		for(size_t i = 0; i < _sensorIDVec.size(); i++) {
 			int sensorID = _sensorIDVec.at(i);
+                        double xSize     =  geo::gGeometry().siPlaneXSize ( sensorID );
+  			double ySize     =  geo::gGeometry().siPlaneYSize ( sensorID );
+                        double xMin = -0.5 * xSize;
+                        double xMax = 0.5 * xSize;
+                        double yMin = -0.5 * ySize;
+                        double yMax = 0.5 * ySize;
+                        int xNBin = static_cast< int >(xMax * 10); 
+                        int yNBin = static_cast< int >(yMax * 10); 
 
 			basePath = "plane_" + to_string( sensorID );
 			AIDAProcessor::tree(this)->mkdir(basePath.c_str());
 			basePath.append("/");
 
 			tempHistoName = "hitXCorr_fixed_to_" + to_string( sensorID ) ;
-                        if(sensorID>9 && sensorID<26){ 
-			AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 500 , -50., 50.);
+                        //if(sensorID>9 && sensorID<26){ 
+			//AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 500 , -50., 50.);
+			//_hitXCorr.insert( make_pair( sensorID, histo1Da) );
+                        //}
+                        //else{
+			AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), xNBin , xMin, xMax);
+			//AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 100 , -10., 10.);
 			_hitXCorr.insert( make_pair( sensorID, histo1Da) );
-                        }
-                        else{
-			AIDA::IHistogram1D * histo1Da = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 100 , -10., 10.);
-			_hitXCorr.insert( make_pair( sensorID, histo1Da) );
-                        }
+                       // }
 
 			tempHistoName = "hitYCorr_fixed_to_" + to_string( sensorID) ;
-                        if(sensorID>9 && sensorID<26){
-			AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 600 , -60., 60.) ;
+                        //if(sensorID>9 && sensorID<26){
+			//AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 600 , -60., 60.) ;
+			//_hitYCorr.insert( make_pair( sensorID, histo1Db) );
+                        //}
+                        //else{
+			AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), yNBin , yMin, yMax);
+			//AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 100 , -10., 10.);
 			_hitYCorr.insert( make_pair( sensorID, histo1Db) );
-                        }
-                        else{
-			AIDA::IHistogram1D * histo1Db = AIDAProcessor::histogramFactory(this)->createHistogram1D( (basePath + tempHistoName).c_str(), 100 , -10., 10.);
-			_hitYCorr.insert( make_pair( sensorID, histo1Db) );
-                        }
+                        //}
 		}
 	}
 	#endif

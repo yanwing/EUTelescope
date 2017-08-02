@@ -113,7 +113,6 @@ namespace eutelescope {
                 double Fxpos=geo::gGeometry()._R0para.Fx ;
                 double Fypos=geo::gGeometry()._R0para.Fy ;
                 if(state.getLocation()>9&&state.getLocation()<26){ //denote the DUT?
-                //if(state.getLocation()>25){ //denote the DUT?
                        double measPosLocal[3] =  {state.getHit().getPosition()[0], state.getHit().getPosition()[1], state.getHit().getPosition()[2]};
                        double ang_meas = atan2(measPosLocal[1] - Fypos,measPosLocal[0] - Fxpos);
                        double r_meas =  sqrt((measPosLocal[0] - Fxpos )*(measPosLocal[0] - Fxpos) + (measPosLocal[1] - Fypos)*(measPosLocal[1]     - Fypos));

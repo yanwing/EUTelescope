@@ -363,7 +363,7 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
                                 
                                 //remove hit with weird hit index which larger than index max 
                                 std::size_t found =  pixelPath.find("invalid");
-                                if(found!=std::string::npos) { streamlog_out(WARNING)<<"invalid index!!"<<std::endl;continue;}
+                                if(found!=std::string::npos) { streamlog_out(WARNING)<<"invalid index: "<<hitPixel.getXCoord()<<" at SensorID = "<<sensorID<<std::endl;continue;}
 				//Then navigate to this pixel with the TGeo manager
 				geo::gGeometry()._geoManager->cd( (planePath+pixelPath).c_str() );
                                          

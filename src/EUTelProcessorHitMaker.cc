@@ -88,14 +88,14 @@ _conversionIdMap(),
 _alreadyBookedSensorID(),
 _aidaHistoMap(),
 _histogramSwitch(true),
-_orderedSensorIDVec(),
-_localDistDUT(0,0)
+_orderedSensorIDVec()
+//_localDistDUT(0,0)
 {
   // modify processor description
   _description =  "EUTelProcessorHitMaker is responsible to translate cluster centers from the local frame of reference \nto the external frame of reference using the GEAR geometry description";
 
   registerInputCollection(LCIO::TRACKERPULSE,"PulseCollectionName", "Input cluster collection name", _pulseCollectionName, std::string(""));
-  registerOptionalParameter("localDistDUT", "Shift the DUT hits", _localDistDUT, FloatVec());
+//  registerOptionalParameter("localDistDUT", "Shift the DUT hits", _localDistDUT, FloatVec());
 
   registerOutputCollection(LCIO::TRACKERHIT,"HitCollectionName", "Output hit collection name", _hitCollectionName, std::string(""));
 
@@ -623,28 +623,21 @@ void EUTelProcessorHitMaker::bookHistos(int sensorID) {
   double xSize     =  geo::gGeometry().siPlaneXSize ( sensorID );
   double ySize     =  geo::gGeometry().siPlaneYSize ( sensorID );
   int xBin         =  2*geo::gGeometry().siPlaneXNpixels( sensorID );
-  //int yBin         =  2*geo::gGeometry().siPlaneYNpixels( sensorID );
-  int yBin;
-  if(sensorID>9&&sensorID<26) {
-  xMin = -60;  // safetyFactor * ( xPosition - ( 0.5 * xSize ));
-  xMax = 60; // safetyFactor * ( xPosition + ( 0.5 * xSize ));
+  int yBin         =  2*geo::gGeometry().siPlaneYNpixels( sensorID );
+  //if(sensorID>9&&sensorID<26) {
+  xMin =  safetyFactor * ( xPosition - ( 0.5 * xSize )); //-60
+  xMax =  safetyFactor * ( xPosition + ( 0.5 * xSize )); //60
    
-  yMin = -50; // safetyFactor * ( yPosition - ( 0.5 * ySize ));
-  yMax = 50; // safetyFactor * ( yPosition + ( 0.5 * ySize ));
+  yMin =  safetyFactor * ( yPosition - ( 0.5 * ySize ));  //-50
+  yMax =  safetyFactor * ( yPosition + ( 0.5 * ySize ));   //50
+ // }
+ // else  {
+ // xMin =  safetyFactor * ( xPosition - ( 0.5 * xSize )); //-20
+ // xMax =  safetyFactor * ( xPosition + ( 0.5 * xSize )); //20
 
-
-  //yBin = 200;
-  yBin = 2*geo::gGeometry().siPlaneYNpixels ( sensorID );
-  }
-  else  {
-  yBin = 2*geo::gGeometry().siPlaneYNpixels ( sensorID );
-
-  xMin = -20;  // safetyFactor * ( xPosition - ( 0.5 * xSize ));
-  xMax = 20; // safetyFactor * ( xPosition + ( 0.5 * xSize ));
-
-  yMin = -20; // safetyFactor * ( yPosition - ( 0.5 * ySize ));
-  yMax = 20; // safetyFactor * ( yPosition + ( 0.5 * ySize ));
-  }
+ // yMin =  safetyFactor * ( yPosition - ( 0.5 * ySize )); //-20
+ // yMax =  safetyFactor * ( yPosition + ( 0.5 * ySize )); //20
+ // }
 
   xNBin = static_cast< int > ( safetyFactor  * xBin );
   yNBin = static_cast< int > ( safetyFactor  * yBin );
