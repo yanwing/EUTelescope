@@ -16,6 +16,10 @@
 //Geometry implementations
 #include "GEARPixGeoDescr.h"
 #include "AnnulusStripGeoDescr.h"
+//#include "PetaletUTR.h"
+#include "PetaletLTR.h"
+//#include "PetaletUTL.h"
+//#include "PetaletLTL.h"
 
 //ROOT includes
 #include "TGeoBBox.h"
@@ -75,7 +79,61 @@ void EUTelGenericPixGeoMgr::addCastedPlane(int planeID, int xPixel, int yPixel, 
 	streamlog_out( MESSAGE3 )  << "Adding plane: " << planeID << " with geoLibName: " << name << " in volume " << planeVolume << std::endl;
 }
 
+//Sam's mod start
+
+void EUTelGenericPixGeoMgr::addCastedpetaletPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize, std::string planeVolume)
+ {
+        
+		 EUTelGenericPixGeoDescr* pixgeodescrptr = NULL;
+        /*
+		 int rminMap  = static_cast<int>(1000*rmin+0.5);
+         int rmaxMap  = static_cast<int>(1000*rmax+0.5);
+         int pitchMap  = static_cast<int>(1000000*pitchPhi+0.5);
+         int stereoMap  = static_cast<int>(1000*stereoAngle+0.5);
+ 		*/
+         std::stringstream stream;
+	 		//stream << xPixel << yPixel << rminMap << rmaxMap << pitchMap << stereoMap;
+         std::string name = stream.str();
+ 		
+         std::map<std::string, EUTelGenericPixGeoDescr*>::iterator it;
+         it = _castedDescriptions.find(name);
+ 
+         if( it!=_castedDescriptions.end() )
+         {
+                 //if it is, use it!
+                 streamlog_out( MESSAGE3 )  << "Found " << name << ", using it" << std::endl;
+                 pixgeodescrptr = (*it).second;
+                 streamlog_out( MESSAGE3 ) << "Inserting " << name << " into map" << std::endl;
+                 _geoDescriptions.insert( std::make_pair(planeID, pixgeodescrptr) );
+         }
+         else
+         {
+			
+                 streamlog_out( MESSAGE3 ) << "Didnt find " << name << " yet, thus creating" << std::endl;
+
+				 if (planeID == 10)
+				 	{pixgeodescrptr = new PetaletLTR();}  //where the pixel description actually addee!
+                 /*
+				 else if (planeID == 11)
+				 	{pixgeodescrptr = new PetaletUTR();}
+				 else if (planeID == 12)
+				 	{pixgeodescrptr = new PetaletLTL();}
+				 else if (planeID == 13)
+				 	{pixgeodescrptr = new PetaletUTL();}
+				*/
+				 streamlog_out( MESSAGE3 ) << "Inserting " << name << " into map" << std::endl;
+                 _geoDescriptions.insert( std::make_pair(planeID, pixgeodescrptr) );
+                 _castedDescriptions.insert( std::make_pair(name, pixgeodescrptr) );
+         }
+ 
+         pixgeodescrptr->createRootDescr(planeVolume);
+         streamlog_out( MESSAGE3 )  << "Adding plane: " << planeID << " with geoLibName: " << name << " in volume " << planeVolume << std::endl;
+ }
+
+//Sam's mod end
+
 //added by Xiaocong
+/*
  void EUTelGenericPixGeoMgr::addCastedAnnulusPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize, double pitchPhi, double stereoAngle, double rmin,  double rmax, double rCentre, double radLength, std::string planeVolume)
  {
          EUTelGenericPixGeoDescr* pixgeodescrptr = NULL;
@@ -111,6 +169,9 @@ void EUTelGenericPixGeoMgr::addCastedPlane(int planeID, int xPixel, int yPixel, 
          pixgeodescrptr->createRootDescr(planeVolume);
          streamlog_out( MESSAGE3 )  << "Adding plane: " << planeID << " with geoLibName: " << name << " in volume " << planeVolume << std::endl;
  }
+
+*/
+
 
 
 void EUTelGenericPixGeoMgr::addPlane(int planeID, std::string geoName, std::string planeVolume)

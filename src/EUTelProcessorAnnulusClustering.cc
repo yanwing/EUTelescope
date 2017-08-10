@@ -28,6 +28,9 @@
 #include "EUTelGeometryTelescopeGeoDescription.h"
 #include "EUTelGenericPixGeoDescr.h"
 
+//Sam's mod
+//#include "PetaletLTR.h"
+
 //ROOT includes
 #include "TGeoShape.h"
 #include "TGeoBBox.h"
@@ -331,10 +334,6 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 		minX = minY = maxY = 0;
 		geoDescr->getPixelIndexRange( minX, maxX, minY, maxY );
                 streamlog_out(DEBUG2) <<" sensorID = "<<sensorID<<" "<<minX<<"  "<<maxX<<std::endl;
-
-
-                double PI=3.14159265358979,deg=180/PI;
-
     		if ( type == kEUTelGenericSparsePixel ) 
 		{
 
@@ -359,15 +358,56 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 
 				//And get the path to the given pixel
 				std::string pixelPath = geoDescr->getPixName(hitPixel.getXCoord(), hitPixel.getYCoord());
-			        streamlog_out ( DEBUG0 ) << "coordinates " << hitPixel.getXCoord()<<"  "<<hitPixel.getYCoord()<< std::endl;
-                                
-                                //remove hit with weird hit index which larger than index max 
-                                std::size_t found =  pixelPath.find("invalid");
-                                if(found!=std::string::npos) { streamlog_out(WARNING)<<"invalid index: "<<hitPixel.getXCoord()<<" at SensorID = "<<sensorID<<std::endl;continue;}
+			        streamlog_out ( DEBUG2 ) << "coordinates " << hitPixel.getXCoord()<<"  "<<hitPixel.getYCoord()<< std::endl;
+
 				//Then navigate to this pixel with the TGeo manager
 				geo::gGeometry()._geoManager->cd( (planePath+pixelPath).c_str() );
-                                         
-                                streamlog_out ( DEBUG0 ) <<"planepath: "<<planePath <<"pixelPath: "<<pixelPath<<std::endl;
+
+				 //-------------Sam mod start-----------------
+				
+				TGeoShape* currentShape =  geo::gGeometry()._geoManager->GetCurrentVolume()->GetShape();
+                TGeoMatrix *matrix =  geo::gGeometry()._geoManager->GetCurrentNode()->GetMatrix();
+                const double* rotation_matrix = matrix->GetRotationMatrix();
+                double rot= asin(rotation_matrix[3]);
+                               // if (sensorID == 10) 
+								
+								double Fxpos=geo::gGeometry()._PLTRpara.Fx;  // Declare our if statement
+                                double Fypos=geo::gGeometry()._PLTRpara.Fy;        //get through other way?        
+								
+						/*		   else if (sensorID == 11) 
+								{
+								double Fxpos=geo::gGeometry()._PUTRpara.Fx;
+                                double Fypos=geo::gGeometry()._PUTRpara.Fy;        //get through other way?        
+								}
+								   else if (sensorID == 12) 
+								{
+								double Fxpos=geo::gGeometry()._PLTLpara.Fx;
+                                double Fypos=geo::gGeometry()._PLTLpara.Fy;        //get through other way?        
+								}
+								  else if (sensorID == 13) 
+								{
+								double Fxpos=geo::gGeometry()._PUTLpara.Fx;
+                                double Fypos=geo::gGeometry()._PUTLpara.Fy;        //get through other way?        
+								}
+				*/
+				 //store all the position information in the AnnulusPixel				  
+				
+                    Double_t x_mid = xmid[geo::gGeometry()._geoManager->GetCurrentNode()->GetNumber()]; 
+					Double_t y_mid = ymid;
+					double rlength = sqrt( (x_mid - Fxpos)*(x_mid - Fxpos) + (y_mid - Fypos)*(y_mid - Fypos)); 
+                    //streamlog_out(DEBUG2) <<"transformed2_pt  "<<transformed2_pt[0]<<", "<<transformed2_pt[1]<<std::endl;
+                    streamlog_out(MESSAGE5) <<" rlength = "<<rlength<< " rot = "<<rot + 3.14159265358979*0.5<<" mid of the strip = "<<x_mid<<", "<<y_mid<<std::endl;
+                	
+					hitPixel.setPosX( x_mid );   //the x and y coordinate of the Annulus center 
+					hitPixel.setPosY( y_mid );
+                   	hitPixel.setr (rlength);
+				    
+					hitPixelVec.push_back( hitPixel );
+
+				 //-------------Sam mod end--------------------
+				
+
+/*
 				//get the imbedding tub 
 				TGeoShape* currentShape =  geo::gGeometry()._geoManager->GetCurrentVolume()->GetShape();
                                 TGeoMatrix *matrix =  geo::gGeometry()._geoManager->GetCurrentNode()->GetMatrix();
@@ -376,14 +416,14 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
                                 double Fxpos=geo::gGeometry()._R0para.Fx;
                                 double Fypos=geo::gGeometry()._R0para.Fy;        //get through other way?                       
  
+               //                 if(sensorID>10)   //what is the sensorID for R0strip sensor?
+		//		{
+			
                                     TGeoTubeSeg* tube = dynamic_cast<TGeoTubeSeg*>( currentShape );
-
-
-
                                      hitPixel.setRmin(tube->GetRmin());
                                      hitPixel.setRmax(tube->GetRmax());
-                                     hitPixel.setdphi( fabs(tube->GetPhi2()-tube->GetPhi1() )*1.0/deg );
-                                     hitPixel.setang( rot+PI*0.5 );
+                                     hitPixel.setdphi( fabs(tube->GetPhi2()-tube->GetPhi1() )*3.14159265358979/180.0 );
+                                     hitPixel.setang( rot+3.14159265358979*0.5 );
 
                                     //Get how deep the node description goes (this is how often we have to transform to get coordinates in the local plane coordinate system)
                                     std::vector<std::string> split = Utility::stringSplit( planePath+pixelPath , "/", false);
@@ -410,27 +450,36 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
                                        transformed1_pt[1] = transformed2_pt[1];
                                        transformed1_pt[2] = transformed2_pt[2];
                                     }
-
+				
                                     //store all the position information in the AnnulusPixel
                                     Double_t x_mid, y_mid, rmin, rmax;
                                     rmin = tube->GetRmin();
                                     rmax = tube->GetRmax();
 
-                                    x_mid = transformed2_pt[0] + (rmin+rmax)*0.5*cos(rot+PI*0.5);
-                                    y_mid = transformed2_pt[1] + (rmin+rmax)*0.5*sin(rot+PI*0.5);
-                                  
-                                    double rlength = sqrt( (x_mid - Fxpos)*(x_mid - Fxpos) + (y_mid - Fypos)*(y_mid - Fypos)); 
+                                    x_mid = transformed2_pt[0] + (rmin+rmax)*0.5*cos(rot+3.14159265358979*0.5);
+                                    y_mid = transformed2_pt[1] + (rmin+rmax)*0.5*sin(rot+3.14159265358979*0.5);
+
+									double rlength = sqrt( (x_mid - Fxpos)*(x_mid - Fxpos) + (y_mid - Fypos)*(y_mid - Fypos)); 
                                     //streamlog_out(DEBUG2) <<"transformed2_pt  "<<transformed2_pt[0]<<", "<<transformed2_pt[1]<<std::endl;
-                                    //streamlog_out(MESSAGE5) <<" rlength = "<<rlength<< " rot = "<<rot + PI*0.5<<" mid of the strip = "<<x_mid<<", "<<y_mid<<std::endl;
+                                    streamlog_out(MESSAGE5) <<" rlength = "<<rlength<< " rot = "<<rot + 3.14159265358979*0.5<<" mid of the strip = "<<x_mid<<", "<<y_mid<<std::endl;
 
                                     hitPixel.setPosX( x_mid );   //the x and y coordinate of the Annulus center 
                                     hitPixel.setPosY( y_mid );
                                     hitPixel.setr (rlength);
 				    hitPixelVec.push_back( hitPixel );
+                 */                 
 
+
+				
+				 
+
+
+//                                }
 			}		
-                                streamlog_out(DEBUG2)<<"size of hitpixel for sensor "<<sensorID<<" is "<<hitPixelVec.size()<<std::endl;
+                                streamlog_out(MESSAGE2)<<"size of hitpixel for sensor "<<sensorID<<" is "<<hitPixelVec.size()<<std::endl;
 
+//                        if(sensor_ID>10) 
+//                        {
                                 std::vector<EUTelAnnulusPixel> newlyAdded;
 		        	//We now cluster those hits together
 			        while( !hitPixelVec.empty() )
@@ -483,7 +532,7 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 			        			if( (dRmin <= 0.0001 ) && (dRmax <= 0.0001) && (dAng <= cutphi) && (dT <= _cutT) )
 			        			{
 			        				//add them to the cluster as well as to the newly added ones
-                                                                //streamlog_out(DEBUG0) <<"coordinates are"<<newlyAdded.front().getXCoord()<<", "<<hitVec->getXCoord()<<", "<< " dRmin = "<<dRmin<<" dRmax = "<<dRmax<<" dAng = "<<dAng<<" dT = "<<dT<<" width_ang1 = "<<width_ang1<< " width_ang2 = "<<width_ang2<<std::endl;
+                                                               //streamlog_out(MESSAGE5) <<"coordinates are"<<newlyAdded.front().getXCoord()<<", "<<hitVec->getXCoord()<<", "<< " dRmin = "<<dRmin<<" dRmax = "<<dRmax<<" dAng = "<<dAng<<" dT = "<<dT<<" width_ang1 = "<<width_ang1<< " width_ang2 = "<<width_ang2<<std::endl;
 			        				newlyAdded.push_back( *hitVec );
 			        				sparseCluster->addSparsePixel( &(*hitVec) );
 			        				//and remove it from the original collection
@@ -542,6 +591,7 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 			        } //loop over all found clusters
 
 
+                      //  }
 			delete genericPixel;
     		}	 
 		else 
@@ -646,11 +696,33 @@ void EUTelProcessorAnnulusClustering::fillHistos (LCEvent * evt)
 			int xPos, yPos, xSize, ySize;
 			cluster->getClusterInfo(xPos, yPos, xSize, ySize); //the xPos and yPos is the position in the index space; xSize and ySize is the size  also in the index space
 			float geoPosR, geoPosPhi, geoPosX, geoPosY, geoSizeR, geoSizePhi;
-                        float Fxpos=geo::gGeometry()._R0para.Fx;
-                        float Fypos=geo::gGeometry()._R0para.Fy;   
+                       
+					  //  if (detectorID == 10) 
+								
+								float Fxpos=geo::gGeometry()._PLTRpara.Fx;
+                                float Fypos=geo::gGeometry()._PLTRpara.Fy;        //get through other way?        
+								
+					/*			else if (sdetectorID == 11) 
+								{
+								float Fxpos=geo::gGeometry()._PUTRpara.Fx;
+                                float Fypos=geo::gGeometry()._PUTRpara.Fy;        //get through other way?        
+								}
+								else if (detectorID == 12) 
+								{
+								float Fxpos=geo::gGeometry()._PLTLpara.Fx;
+                                float Fypos=geo::gGeometry()._PLTLpara.Fy;        //get through other way?        
+								}
+								else if (detectorID == 13) 
+								{
+								float Fxpos=geo::gGeometry()._PUTLpara.Fx;
+                                float Fypos=geo::gGeometry()._PUTLpara.Fy;        //get through other way?        
+								}
+					*/			
+					   // float Fxpos=geo::gGeometry()._R0para.Fx;
+                        //float Fypos=geo::gGeometry()._R0para.Fy;   
 			cluster->getClusterGeomInfo(Fxpos, Fypos, geoPosX, geoPosY, geoPosR, geoPosPhi, geoSizeR, geoSizePhi); // the geoPosX and geoPosY is the r and phi in the polar coordinate, geoSizeX and geoSizeY are the size of r and phi in the polar coordinate 
                         //streamlog_out(DEBUG2)<<"xPos, yPos, xSize, ySize = "<<xPos<<", "<<yPos<<", "<<xSize<<", "<<ySize<<std::endl;
-                        //streamlog_out(MESSAGE5)<<"geoPos, geoPos, geoSize, geoSize = "<<geoPosX<<", "<<geoPosY<<", "<<Fxpos<<", "<<Fypos<<std::endl;
+                        streamlog_out(MESSAGE5)<<"geoPos, geoPos, geoSize, geoSize = "<<geoPosX<<", "<<geoPosY<<", "<<Fxpos<<", "<<Fypos<<std::endl;
 			//Do all the plots
 			(dynamic_cast<AIDA::IHistogram1D*> (_clusterSizeXHistos[detectorID]))->fill(xSize);
 			(dynamic_cast<AIDA::IHistogram1D*> (_clusterSizeYHistos[detectorID]))->fill(ySize);

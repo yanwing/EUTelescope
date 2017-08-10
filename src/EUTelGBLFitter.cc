@@ -110,18 +110,48 @@ namespace eutelescope {
                 setMeasurementCov(state);
                 double cov[4];
                 state.getHit().getCov(cov);
+                
+//Sam's mod starts
+                
+               // if (planeID == 10)
+                
+                    double Fxpos=geo::gGeometry()._PLTRpara.Fx ;
+                    double Fypos=geo::gGeometry()._PLTRpara.Fy ;
+                
+               /* if (planeID == 11)
+                { 
+                    double Fxpos=geo::gGeometry()._PUTRpara.Fx ;
+                    double Fypos=geo::gGeometry()._PUTRpara.Fy ;
+                }
+                if (planeID == 12)
+                { 
+                    double Fxpos=geo::gGeometry()._PLTLpara.Fx ;
+                    double Fypos=geo::gGeometry()._PLTLpara.Fy ;
+                } 
+                if (planeID == 13)
+                { 
+                    double Fxpos=geo::gGeometry()._PUTLpara.Fx ;
+                    double Fypos=geo::gGeometry()._PUTLpara.Fy ;
+                }
+                */                               
+//Sam's mod ends
+
+                /*
                 double Fxpos=geo::gGeometry()._R0para.Fx ;
                 double Fypos=geo::gGeometry()._R0para.Fy ;
-                if(state.getLocation()>9&&state.getLocation()<26){ //denote the DUT?
+                */
+                if(state.getLocation()>9&&state.getLocation()<22){ //denote the DUT?
+                //if(state.getLocation()>25){ //denote the DUT?
                        double measPosLocal[3] =  {state.getHit().getPosition()[0], state.getHit().getPosition()[1], state.getHit().getPosition()[2]};
                        double ang_meas = atan2(measPosLocal[1] - Fypos,measPosLocal[0] - Fxpos);
                        double r_meas =  sqrt((measPosLocal[0] - Fxpos )*(measPosLocal[0] - Fxpos) + (measPosLocal[1] - Fypos)*(measPosLocal[1]     - Fypos));
+ 
                        //TVector3 predPosLocal=  state.getPosition();
                        //double ang_pred = atan((predPosLocal[1] - Fypos)/(predPosLocal[0] - Fxpos ));
                        //double  r_pred =  sqrt((predPosLocal[0] - Fxpos )*(predPosLocal[0] - Fxpos) + (predPosLocal[1] - Fypos)*(predPosLocal[1]     - Fypos));
 
-		        //streamlog_out(DEBUG0) <<"Hit position is " << state.getHit().getPosition()[0]<<", "<<state.getHit().getPosition()[1] <<"r = "<<r_meas<<" with cosang = "<<cos(ang_meas)<<" sinang = "<<sin(ang_meas)<<"res is "<<meas[0]<<"   "<<meas[1]<<std::endl;
-                       //streamlog_out(DEBUG0)<<(cov[0]*cos(ang_meas)*cos(ang_meas) + cov[3]*r_meas*r_meas*sin(ang_meas)*sin(ang_meas))<<",  "<<((cov[0]-cov[3]*r_meas*r_meas)*sin(ang_meas)*cos(ang_meas))<<",  "<<(cov[0]*sin(ang_meas)*sin(ang_meas) + cov[3]*r_meas*r_meas*cos(ang_meas)*cos(ang_meas))<<std::endl; 
+		 //      streamlog_out(MESSAGE5) <<"Hit position is " << state.getHit().getPosition()[0]<<", "<<state.getHit().getPosition()[1] <<"r = "<<r_meas<<" with cosang = "<<cos(ang_meas)<<" sinang = "<<sin(ang_meas)<<"res is "<<meas[0]<<"   "<<meas[1]<<std::endl;
+                       //std::cout<<(cov[0]*cos(ang_meas)*cos(ang_meas) + cov[3]*r_meas*r_meas*sin(ang_meas)*sin(ang_meas))<<",  "<<((cov[0]-cov[3]*r_meas*r_meas)*sin(ang_meas)*cos(ang_meas))<<",  "<<(cov[0]*sin(ang_meas)*sin(ang_meas) + cov[3]*r_meas*r_meas*cos(ang_meas)*cos(ang_meas))<<std::endl; 
                        TMatrixDSym covxy(2);
                        //covxy[0][0] = cov[0]*cos(ang_meas)*cos(ang_meas) + cov[3]*sin(ang_meas)*sin(ang_meas);
                        //covxy[0][1] = (cov[0]-cov[3])*sin(ang_meas)*cos(ang_meas);
@@ -507,7 +537,7 @@ namespace eutelescope {
 		streamlog_out(DEBUG4)<<"EUTelGBLFitter::testTrack------------------------------------END"<<std::endl;
 
 	} 
-	void EUTelGBLFitter::getCorr(gbl::GblTrajectory* traj,EUTelTrack &track, std::map<int, std::vector<double> > &  mapSensorIDToCorrectionVec){
+	void EUTelGBLFitter::getCorr(gbl::GblTrajectory* traj,EUTelTrack &track, std::map<int, std::vector<double> > &  mapr0ToCorrectionVec){
         ///Only state which are created before will be updated. Scattering planes within GBL are not saved.
         bool foundScat=false;
         ///Needs to be a reference to add kink information.

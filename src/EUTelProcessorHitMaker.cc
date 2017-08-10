@@ -319,8 +319,30 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 
 			}
 
-                        float Fxpos=geo::gGeometry()._R0para.Fx;
-                        float Fypos=geo::gGeometry()._R0para.Fy; 
+  
+					    if (sensorID == 10) 
+								{
+								float Fxpos=geo::gGeometry()._PLTRpara.Fx;
+                                float Fypos=geo::gGeometry()._PLTRpara.Fy;        //get through other way?        
+								}
+								   if (sensorID == 11) 
+								{
+								float Fxpos=geo::gGeometry()._PUTRpara.Fx;
+                                float Fypos=geo::gGeometry()._PUTRpara.Fy;        //get through other way?        
+								}
+								   if (sensorID == 12) 
+								{
+								float Fxpos=geo::gGeometry()._PLTLpara.Fx;
+                                float Fypos=geo::gGeometry()._PLTLpara.Fy;        //get through other way?        
+								}
+								   if (sensorID == 13) 
+								{
+								float Fxpos=geo::gGeometry()._PUTLpara.Fx;
+                                float Fypos=geo::gGeometry()._PUTLpara.Fy;        //get through other way?        
+								}
+
+                    //    float Fxpos=geo::gGeometry()._R0para.Fx;
+                      //  float Fypos=geo::gGeometry()._R0para.Fy; 
 
 			// LOCAL coordinate system !!!!!!
 			double telPos[3];
