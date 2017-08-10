@@ -8,6 +8,10 @@
 
 //EUTelescope
 #include "EUTelGenericPixGeoDescr.h"
+//#include "PetaletUTR.h"
+#include "PetaletLTR.h"
+//#include "PetaletUTL.h"
+//#include "PetaletLTL.h"
 
 //ROOT includes
 #include "TGeoManager.h"
@@ -55,8 +59,10 @@ public:
         
 	void addCastedPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize, double radLength, std::string planeVolume);
 
-        void addCastedAnnulusPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize, double pitchPhi, double stereoAngle, double rmin, double rmax, double rCentre, double radLength, std::string planeVolume);
+        //void addCastedAnnulusPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize, double pitchPhi, double stereoAngle, double rmin, double rmax, double rCentre, double radLength, std::string planeVolume);
+		 void addCastedpetaletPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize, std::string planeVolume);
 
+		 //void 
 	/** Method to get the EUTelGenericPixGeoDescr of a plane. 
 	 * 
 	 *  @param planeID The plane of which the EUTelGenericPixGeoDescr

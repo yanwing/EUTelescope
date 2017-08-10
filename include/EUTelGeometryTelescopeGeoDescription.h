@@ -79,6 +79,36 @@ struct EUTelPlane
 	double xRes, yRes;
 };
 
+/*Sam's mod*/
+
+struct EUTelPUTL
+ {
+     double Fx, Fy;
+   //  double radLength; 
+ };
+
+
+struct EUTelPUTR
+ {
+     double Fx, Fy;
+   //  double radLength; 
+ };
+
+
+struct EUTelPLTL
+ {
+     double Fx, Fy;
+   //  double radLength; 
+ };
+
+
+struct EUTelPLTR
+ {
+     double Fx, Fy;
+   //  double radLength; 
+ };
+
+/*
 //added by xiaocong
  struct EUTelR0
  {
@@ -94,7 +124,7 @@ struct EUTelPlane
      double Fx, Fy;
    //  double radLength; 
  };
- 
+ */
 
 // Iterate over registered GEAR objects and construct their TGeo representation
 const Double_t PI     = 3.141592653589793;
@@ -189,8 +219,15 @@ class EUTelGeometryTelescopeGeoDescription
 	 * Performs lazy intialization if necessary.
 	 * @TODO this routine has to be considered to be constant
 	 */
+
+		//added by Sam
+     EUTelPLTL _PLTLpara;
+	 EUTelPLTR _PLTRpara;
+	 EUTelPUTL _PUTLpara;	
+	 EUTelPUTR _PUTRpara;
+
         //added by xiaocong
-        EUTelR0 _R0para;
+      //  EUTelR0 _R0para;
 
  	static EUTelGeometryTelescopeGeoDescription& getInstance( gear::GearMgr* _g );
 
