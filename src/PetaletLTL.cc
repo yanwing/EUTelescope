@@ -45,7 +45,7 @@ PetaletLTL::PetaletLTL(): EUTelGenericPixGeoDescr(40.0, 40.0, 1.0,	//size X, Y, 
 	else{angle2=atan(m2);}
 	Double_t c1=Y[0]-m1*X[1],c2=Y[0]-m2*X[0];
 	Double_t fx=(c2-c1)/(m1-m2),fy=(c1*m2-c2*m1)/(m2-m1);//focus point
-	Double_t xmid[EIndex+2];
+	//Double_t xmid[EIndex+2];
 	//cout<<angle1<<" "<<(y2-y1)/(xa2-xa1)<<endl;
 	//cout<<"Given focus fx: "<<TLFocusX <<" fy: "<<TLFocusY <<endl;
 	//cout<<"Calculated focus fx: "<<fx<<" fy: "<<fy<<endl;
@@ -64,7 +64,7 @@ PetaletLTL::PetaletLTL(): EUTelGenericPixGeoDescr(40.0, 40.0, 1.0,	//size X, Y, 
 	  xM2=(Y[1]-fy)/tan(M_theta)+fx, xR2=(Y[1]-fy)/tan(R_theta)+fx, xL2=(Y[1]-fy)/tan(L_theta)+fx;
 	  //get centre of strip x
 	  xC=(ymid-fy)/tan(M_theta)+fx;
-	  xmid[i+1]=xC;
+	 // xmid[i+1]=xC;
 
 	  Double_t vert[16]={xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0],
                              xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0]};

@@ -390,10 +390,47 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
                                 double Fypos=geo::gGeometry()._PUTLpara.Fy;        //get through other way?        
 								}
 				*/
-				 //store all the position information in the AnnulusPixel				  
-				
-                    Double_t x_mid = xmid[geo::gGeometry()._geoManager->GetCurrentNode()->GetNumber()]; 
-					Double_t y_mid = ymid;
+				 //store all the position information in the AnnulusPixel				
+
+// Calculation of y mid , x mid
+	
+	
+	Double_t Pi=3.14159265358979;
+	Double_t YAdd=19.4,XAdd=0.0/*18.4055*/;
+	Double_t y1=-37.752,y2=-19.443,y3=-19.357,y4=-1.048;
+	Double_t LTRx1=-17.487,LTRx2=17.680,LTRx3=-17.774,LTRx4=19.041;//y1 and y2
+	Double_t UTRx1=-17.302,UTRx2=19.792,UTRx3=-17.595,UTRx4=21.163;//y3 and y4
+	Double_t TRFocusX=-10.766,TRFocusY=-427.317;
+
+	Double_t Y[]={y1,y2,y3,y4};
+	Double_t X[]={LTRx1,LTRx2,LTRx3,LTRx4,UTRx1,UTRx2,UTRx3,UTRx4};
+	//Apply rotations and translations
+	for (int i=0;i<4;i++){ Y[i]+=YAdd;}
+	for (int i=0;i<8;i++){ X[i]+=XAdd;}
+	TRFocusX+=XAdd;
+	TRFocusY+=YAdd;
+
+	Int_t SIndex =5, EIndex =380;
+	Double_t m1=(Y[0]-Y[1])/(X[1]-X[3]);//channel 5 (right)
+	Double_t m2=(Y[0]-Y[1])/(X[0]-X[2]);//channel 380 (left)
+	Double_t angle1,angle2,n=EIndex-SIndex;
+	if(m1<0){angle1=atan(m1)+Pi;}
+	else{angle1=atan(m1);}
+	if(m2<0){angle2=atan(m2)+Pi;}
+	else{angle2=atan(m2);}
+	Double_t c1=Y[0]-m1*X[1],c2=Y[0]-m2*X[0];
+	Double_t fx=(c2-c1)/(m1-m2),fy=(c1*m2-c2*m1)/(m2-m1);//focus point
+	Double_t start_theta=angle1,d_theta=abs(angle2-angle1)/n,stM_theta=angle1;
+	Double_t xC, M_theta;
+	Double_t y_mid=(Y[0]+Y[1])/2;  
+
+	int j = geo::gGeometry()._geoManager->GetCurrentNode()->GetNumber();
+	   M_theta=(stM_theta+j*d_theta);
+	  //get centre of strip x
+	  Double_t x_mid=(y_mid-fy)/tan(M_theta)+fx;
+	
+                    //Double_t x_mid = xC; 
+					//Double_t y_mid = ymid;
 					double rlength = sqrt( (x_mid - Fxpos)*(x_mid - Fxpos) + (y_mid - Fypos)*(y_mid - Fypos)); 
                     //streamlog_out(DEBUG2) <<"transformed2_pt  "<<transformed2_pt[0]<<", "<<transformed2_pt[1]<<std::endl;
                     streamlog_out(MESSAGE5) <<" rlength = "<<rlength<< " rot = "<<rot + 3.14159265358979*0.5<<" mid of the strip = "<<x_mid<<", "<<y_mid<<std::endl;

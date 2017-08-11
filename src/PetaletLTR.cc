@@ -53,7 +53,7 @@ PetaletLTR::PetaletLTR(): EUTelGenericPixGeoDescr(45.0, 45.0, 1.0,	//size X, Y, 
 	Double_t start_theta=angle1,d_theta=abs(angle2-angle1)/n,stM_theta=angle1;
 	Double_t stR_theta=stM_theta-d_theta/2,stL_theta=stM_theta+d_theta/2;
 	Double_t xM1, xM2, xR1, xR2, xL1, xL2, xC, M_theta, R_theta, L_theta;
-	 ymid=(Y[0]+Y[1])/2;
+	Double_t ymid=(Y[0]+Y[1])/2;
 	
 
 	//Change here
@@ -66,7 +66,7 @@ PetaletLTR::PetaletLTR(): EUTelGenericPixGeoDescr(45.0, 45.0, 1.0,	//size X, Y, 
 	  xM2=(Y[1]-fy)/tan(M_theta)+fx, xR2=(Y[1]-fy)/tan(R_theta)+fx, xL2=(Y[1]-fy)/tan(L_theta)+fx;
 	  //get centre of strip x
 	  xC=(ymid-fy)/tan(M_theta)+fx;
-	  xmid[i+1+SIndex]=xC;
+	  //double_t xmid[i+1+SIndex]=xC;
 	  //Define the strips. Name, material, half the thickness
 	  Double_t vert[16]={xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0],
 			     xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0]};			
