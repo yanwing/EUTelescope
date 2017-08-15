@@ -81,7 +81,7 @@ void EUTelGenericPixGeoMgr::addCastedPlane(int planeID, int xPixel, int yPixel, 
 
 //Sam's mod start
 
-void EUTelGenericPixGeoMgr::addCastedpetaletPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize, std::string planeVolume)
+void EUTelGenericPixGeoMgr::addCastedpetaletPlane(int planeID, int xPixel, int yPixel, double xSize, double ySize, double zSize,double radLength, std::string planeVolume)
  {
         
 		 EUTelGenericPixGeoDescr* pixgeodescrptr = NULL;
@@ -111,8 +111,8 @@ void EUTelGenericPixGeoMgr::addCastedpetaletPlane(int planeID, int xPixel, int y
 			
                  streamlog_out( MESSAGE3 ) << "Didnt find " << name << " yet, thus creating" << std::endl;
 
-				 if (planeID == 10)
-				 	{pixgeodescrptr = new PetaletLTR();}  //where the pixel description actually addee!
+				 //if (planeID == 10)
+				pixgeodescrptr = new PetaletLTR(); //where the pixel description actually addee!
                  /*
 				 else if (planeID == 11)
 				 	{pixgeodescrptr = new PetaletUTR();}
@@ -129,6 +129,7 @@ void EUTelGenericPixGeoMgr::addCastedpetaletPlane(int planeID, int xPixel, int y
          pixgeodescrptr->createRootDescr(planeVolume);
          streamlog_out( MESSAGE3 )  << "Adding plane: " << planeID << " with geoLibName: " << name << " in volume " << planeVolume << std::endl;
  }
+ 
 
 //Sam's mod end
 

@@ -347,7 +347,7 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
                         std::vector<EUTelAnnulusPixel> hitPixelVec;
 
 			EUTelGenericSparsePixel* genericPixel = new EUTelGenericSparsePixel;
-
+streamlog_out ( WARNING3) << "Start calculation of x_mid" << std::endl;
 			//This for-loop loads all the hits of the given event and detector plane and stores them as AnnulusPixels
 			for(int i = 0; i < hitPixelsInEvent; ++i )
 			{      

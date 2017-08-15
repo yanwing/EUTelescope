@@ -592,17 +592,25 @@ void EUTelGeometryTelescopeGeoDescription::translateSiPlane2TGeo(TGeoVolume* pvo
 			*/
  
  
-                  if(SensorId ==15 || SensorId ==11 || SensorId == 19 || SensorId == 23)  _pixGeoMgr->addCastedpetaletPlane(SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), stVolName);
-                /*
+                  if(SensorId ==14 || SensorId ==10 || SensorId == 18 || SensorId == 22)
+				{
+					_pixGeoMgr->addCastedpetaletPlane(SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), siPlaneRadLength(SensorId), stVolName);
+                streamlog_out ( WARNING3) << " PETALET GEOMETERY LTL is loaded" << std::endl;
+				}
+				/*
 				  else if(SensorId ==16 || SensorId ==12 || SensorId == 20 || SensorId == 24)  _pixGeoMgr->addCastedpetaletPlane(SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), stVolName);
-                  else if(SensorId ==14 || SensorId ==10 || SensorId == 18 || SensorId == 22)  _pixGeoMgr->addCastedpetaletPlane(SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), stVolName);
+                  else if(SensorId ==15 || SensorId ==11 || SensorId == 19 || SensorId == 23)  _pixGeoMgr->addCastedpetaletPlane(SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), stVolName);
                   else if(SensorId ==17 || SensorId ==13 || SensorId == 21 || SensorId == 25)  _pixGeoMgr->addCastedpetaletPlane(SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), stVolName);
                   */
-				  else _pixGeoMgr->addCastedPlane( SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), siPlaneRadLength(SensorId), stVolName);
-
-	} else {
+				  else {
+					  _pixGeoMgr->addCastedPlane( SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), siPlaneRadLength(SensorId), stVolName);
+						streamlog_out( WARNING3 ) << "casted plane added" << std::endl;
+						}
+	}else {
 		_pixGeoMgr->addPlane( SensorId, name, stVolName);
-	}
+		streamlog_out( WARNING3 ) << " plane added" << std::endl;
+			}
+	
 
 //sam's mod end
 
@@ -640,7 +648,7 @@ void EUTelGeometryTelescopeGeoDescription::translateSiPlane2TGeo(TGeoVolume* pvo
 //add the geometry for each plane to TGeo
 void EUTelGeometryTelescopeGeoDescription::initializeTGeoDescription( std::string& geomName, bool dumpRoot = false ) {
 	if( _isGeoInitialized ) {
-		streamlog_out( WARNING3 ) << "EUTelGeometryTelescopeGeoDescription: Geometry already initialized, using old initialization" << std::endl;
+		streamlog_out( WARNING3 ) << "EUTelGeometryTelescopeGeoDescription: Geometry already initialized, using old initialization :: testing" << std::endl;
 		return;
 	} else {
     		_geoManager = new TGeoManager("Telescope", "v0.1");
