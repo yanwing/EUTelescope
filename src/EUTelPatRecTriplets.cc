@@ -635,7 +635,7 @@ void EUTelPatRecTriplets::printTrackQuality(std::vector<EUTelTrack>&  tracks )
     }
 
 	_numberOfTracksTotal = _numberOfTracksTotal + tracks.size();
-	if(_numberOfTracksTotal % 1000 == 0){
+	if(_numberOfTracksTotal % 10000 == 0){
         streamlog_out(MESSAGE5) << "Number of tracks with DUT hit per event: " << static_cast<float>(_numberOfTracksDUTTotal)/static_cast<float>(getEventNumber() +1)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of tracks per event: " << static_cast<float>(_numberOfTracksTotal)/static_cast<float>(getEventNumber() +1)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of left arm triplets per event: " << static_cast<float>(_numberTripletsLeft)/static_cast<float>(getEventNumber() +1)<< std::endl;

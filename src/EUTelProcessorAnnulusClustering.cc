@@ -347,7 +347,7 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
                         std::vector<EUTelAnnulusPixel> hitPixelVec;
 
 			EUTelGenericSparsePixel* genericPixel = new EUTelGenericSparsePixel;
-streamlog_out ( WARNING3) << "Start calculation of x_mid" << std::endl;
+//streamlog_out ( WARNING3) << "Start calculation of x_mid" << std::endl;
 			//This for-loop loads all the hits of the given event and detector plane and stores them as AnnulusPixels
 			for(int i = 0; i < hitPixelsInEvent; ++i )
 			{      
@@ -424,8 +424,8 @@ streamlog_out ( WARNING3) << "Start calculation of x_mid" << std::endl;
 	Double_t xC, M_theta;
 	Double_t y_mid=(Y[0]+Y[1])/2;  
 
-	int j = geo::gGeometry()._geoManager->GetCurrentNode()->GetNumber();
-	   M_theta=(stM_theta+j*d_theta);
+	//int j = geo::gGeometry()._geoManager->GetCurrentNode()->GetNumber();
+	   M_theta=(stM_theta+hitPixel.getXCoord()*d_theta);
 	  //get centre of strip x
 	  Double_t x_mid=(y_mid-fy)/tan(M_theta)+fx;
 	
@@ -759,7 +759,7 @@ void EUTelProcessorAnnulusClustering::fillHistos (LCEvent * evt)
                         //float Fypos=geo::gGeometry()._R0para.Fy;   
 			cluster->getClusterGeomInfo(Fxpos, Fypos, geoPosX, geoPosY, geoPosR, geoPosPhi, geoSizeR, geoSizePhi); // the geoPosX and geoPosY is the r and phi in the polar coordinate, geoSizeX and geoSizeY are the size of r and phi in the polar coordinate 
                         //streamlog_out(DEBUG2)<<"xPos, yPos, xSize, ySize = "<<xPos<<", "<<yPos<<", "<<xSize<<", "<<ySize<<std::endl;
-                        streamlog_out(MESSAGE5)<<"geoPos, geoPos, geoSize, geoSize = "<<geoPosX<<", "<<geoPosY<<", "<<Fxpos<<", "<<Fypos<<std::endl;
+                      //  streamlog_out(MESSAGE5)<<"geoPos, geoPos, geoSize, geoSize = "<<geoPosX<<", "<<geoPosY<<", "<<Fxpos<<", "<<Fypos<<std::endl;
 			//Do all the plots
 			(dynamic_cast<AIDA::IHistogram1D*> (_clusterSizeXHistos[detectorID]))->fill(xSize);
 			(dynamic_cast<AIDA::IHistogram1D*> (_clusterSizeYHistos[detectorID]))->fill(ySize);

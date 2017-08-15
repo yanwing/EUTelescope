@@ -84,7 +84,7 @@ PetaletLTR::PetaletLTR(): EUTelGenericPixGeoDescr(45.0, 45.0, 1.0,	//size X, Y, 
 	  arbL->SetVertex(7, xL2, Y[1]);*/
 	  plane->AddNode(strip,i+1+ SIndex ,new TGeoTranslation(0,0,0)); //i+3 ->> i+5, short /ganged strip correction
 	}
-/*
+
 	//=======================================================================================================
 	//UTR
 	//=======================================================================================================
@@ -93,6 +93,7 @@ PetaletLTR::PetaletLTR(): EUTelGenericPixGeoDescr(45.0, 45.0, 1.0,	//size X, Y, 
 	Int_t SIndex1=1280,EIndex1=1403, n1=EIndex1-SIndex1;
 	Int_t SIndex2=1408,EIndex2=1535, n2=EIndex2-SIndex2;
 	Int_t SIndex3=1539,EIndex3=1663, n3=EIndex3-SIndex3;
+
 	m1=(Y[2]-Y[3])/(X[5]-X[7]),m2=(Y[2]-Y[3])/(X[4]-X[6]);
 	n=n1+n2+n3+2;
 
@@ -189,7 +190,7 @@ PetaletLTR::PetaletLTR(): EUTelGenericPixGeoDescr(45.0, 45.0, 1.0,	//size X, Y, 
 
 
 
-*/
+
 }
 
 PetaletLTR::~ PetaletLTR()
