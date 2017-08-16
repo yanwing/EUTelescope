@@ -106,7 +106,7 @@ PetaletUTL::PetaletUTL(): EUTelGenericPixGeoDescr(40.0, 40.0, 1.0,	//size X, Y, 
 	Double_t stR_theta=stM_theta-d_theta/2,stL_theta=stM_theta+d_theta/2;
 	Double_t xM1, xM2, xR1, xR2, xL1, xL2, xC, M_theta, R_theta, L_theta;
 	Double_t ymid=(Y[2]+Y[3])/2;
-	Double_t xmid[EIndex3+2];
+	//Double_t xmid[EIndex3+2];
 
 	for (int i=SIndex3;i<=EIndex3;i++){
           int j=i-SIndex3;
@@ -114,7 +114,7 @@ PetaletUTL::PetaletUTL(): EUTelGenericPixGeoDescr(40.0, 40.0, 1.0,	//size X, Y, 
           xM1=(Y[2]-fy)/tan(M_theta)+fx, xR1=(Y[2]-fy)/tan(R_theta)+fx, xL1=(Y[2]-fy)/tan(L_theta)+fx;
           xM2=(Y[3]-fy)/tan(M_theta)+fx, xR2=(Y[3]-fy)/tan(R_theta)+fx, xL2=(Y[3]-fy)/tan(L_theta)+fx;
           xC=(ymid-fy)/tan(M_theta)+fx;
-		  xmid[i+1]=xC;
+	//	  xmid[i+1]=xC;
 
 	  Double_t vert[16]={xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0],
                              xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0]};
@@ -141,7 +141,7 @@ PetaletUTL::PetaletUTL(): EUTelGenericPixGeoDescr(40.0, 40.0, 1.0,	//size X, Y, 
           xM1=(Y[2]-fy)/tan(M_theta)+fx, xR1=(Y[2]-fy)/tan(R_theta)+fx, xL1=(Y[2]-fy)/tan(L_theta)+fx;
           xM2=(Y[3]-fy)/tan(M_theta)+fx, xR2=(Y[3]-fy)/tan(R_theta)+fx, xL2=(Y[3]-fy)/tan(L_theta)+fx;
           xC=(ymid-fy)/tan(M_theta)+fx;
-		  xmid[i+1]=xC;
+		  //xmid[i+1]=xC;
 
 	  Double_t vert[16]={xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0],
                              xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0]};
@@ -167,7 +167,7 @@ PetaletUTL::PetaletUTL(): EUTelGenericPixGeoDescr(40.0, 40.0, 1.0,	//size X, Y, 
           xM1=(Y[2]-fy)/tan(M_theta)+fx, xR1=(Y[2]-fy)/tan(R_theta)+fx, xL1=(Y[2]-fy)/tan(L_theta)+fx;
           xM2=(Y[3]-fy)/tan(M_theta)+fx, xR2=(Y[3]-fy)/tan(R_theta)+fx, xL2=(Y[3]-fy)/tan(L_theta)+fx;
           xC=(ymid-fy)/tan(M_theta)+fx;
-		  xmid[i+1]=xC;
+		  //xmid[i+1]=xC;
 
 	  Double_t vert[16]={xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0],
                              xL2, Y[1], xR2, Y[1], xR1, Y[0], xL1, Y[0]};
