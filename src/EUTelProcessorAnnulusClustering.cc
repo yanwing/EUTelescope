@@ -18,11 +18,13 @@
 #include "EUTelRunHeaderImpl.h"
 #include "EUTelEventImpl.h"
 #include "EUTelHistogramManager.h"
+#include "EUTelUtility.h"
 
 //eutel data specific
 #include "EUTelTrackerDataInterfacerImpl.h"
 #include "EUTelGenericSparseClusterImpl.h"
 #include "EUTelAnnulusClusterImpl.h"
+#include "EUTelGeometricClusterImpl.h"
 
 //eutel geometry
 #include "EUTelGeometryTelescopeGeoDescription.h"
@@ -343,9 +345,11 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 			streamlog_out ( DEBUG2 ) << "Processing sparse data on detector " << sensorID << " with " << sparseData->size() << " pixels " << std::endl;
 
 			int hitPixelsInEvent = sparseData->size();
-
-                        std::vector<EUTelAnnulusPixel> hitPixelVec;
-
+			std::vector<EUTelGeometricPixel> hitPixelVec;
+         // 
+		 //
+		 //              std::vector<EUTelAnnulusPixel> hitPixelVec;
+		//
 			EUTelGenericSparsePixel* genericPixel = new EUTelGenericSparsePixel;
 //streamlog_out ( WARNING3) << "Start calculation of x_mid" << std::endl;
 			//This for-loop loads all the hits of the given event and detector plane and stores them as AnnulusPixels
@@ -354,7 +358,8 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
                                     
 				//Load the information of the hit pixel into genericPixel
 				sparseData->getSparsePixelAt( i, genericPixel );
-				EUTelAnnulusPixel hitPixel( *genericPixel );
+				EUTelGeometricPixel hitPixel( *genericPixel );
+				//EUTelAnnulusPixel hitPixel( *genericPixel );
 
 				//And get the path to the given pixel
 				std::string pixelPath = geoDescr->getPixName(hitPixel.getXCoord(), hitPixel.getYCoord());
@@ -421,23 +426,24 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 	Double_t c1=Y[0]-m1*X[1],c2=Y[0]-m2*X[0];
 	Double_t fx=(c2-c1)/(m1-m2),fy=(c1*m2-c2*m1)/(m2-m1);//focus point
 	Double_t start_theta=angle1,d_theta=abs(angle2-angle1)/n,stM_theta=angle1;
-	Double_t xC, M_theta;
+	Double_t M_theta;
 	Double_t y_mid=(Y[0]+Y[1])/2;  
+//	 streamlog_out(MESSAGE5) << "Y[0] = " << Y[0]<< ", Y[1] = " << Y[1]<< ", fy = "<<fy<<std::endl;
 
 	//int j = geo::gGeometry()._geoManager->GetCurrentNode()->GetNumber();
-	   M_theta=(stM_theta+hitPixel.getXCoord()*d_theta);
+	   M_theta=(stM_theta+(hitPixel.getXCoord()-5)*d_theta);
 	  //get centre of strip x
 	  Double_t x_mid=(y_mid-fy)/tan(M_theta)+fx;
 	
                     //Double_t x_mid = xC; 
 					//Double_t y_mid = ymid;
-					double rlength = sqrt( (x_mid - Fxpos)*(x_mid - Fxpos) + (y_mid - Fypos)*(y_mid - Fypos)); 
+					//double rlength = sqrt( (x_mid - Fxpos)*(x_mid - Fxpos) + (y_mid - Fypos)*(y_mid - Fypos)); 
                     //streamlog_out(DEBUG2) <<"transformed2_pt  "<<transformed2_pt[0]<<", "<<transformed2_pt[1]<<std::endl;
-                    streamlog_out(MESSAGE5) <<" rlength = "<<rlength<< " rot = "<<rot + 3.14159265358979*0.5<<" mid of the strip = "<<x_mid<<", "<<y_mid<<std::endl;
+//                   streamlog_out(MESSAGE5) <<"for strip number "<< hitPixel.getXCoord() <<" rlength = "<<rlength<< " rot = "<<rot + 3.14159265358979*0.5<<" mid of the strip = "<<x_mid<<", "<<y_mid<<std::endl;
                 	
 					hitPixel.setPosX( x_mid );   //the x and y coordinate of the Annulus center 
 					hitPixel.setPosY( y_mid );
-                   	hitPixel.setr (rlength);
+                   	//hitPixel.setr (rlength);
 				    
 					hitPixelVec.push_back( hitPixel );
 
@@ -515,6 +521,118 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 			}		
                                 streamlog_out(MESSAGE2)<<"size of hitpixel for sensor "<<sensorID<<" is "<<hitPixelVec.size()<<std::endl;
 
+//Sam's mod
+
+
+std::vector<EUTelGeometricPixel> newlyAdded;
+		//We now cluster those hits together
+		while( !hitPixelVec.empty() )
+		{
+		    // prepare a TrackerData to store the cluster candidate
+		    std::unique_ptr<TrackerDataImpl> zsCluster = std::make_unique<TrackerDataImpl>();
+		    // prepare a reimplementation of sparsified cluster
+		    std::unique_ptr<EUTelGenericSparseClusterImpl<EUTelGeometricPixel>> sparseCluster = std::make_unique<EUTelGenericSparseClusterImpl<EUTelGeometricPixel>>(zsCluster.get());
+		    
+		    //First we need to take any pixel, so let's take the first one
+		    //Add it to the cluster as well as the newly added pixels
+		    newlyAdded.push_back( hitPixelVec.front() );
+		    sparseCluster->addSparsePixel( &hitPixelVec.front() );
+		    //And remove it from the original collection
+		    hitPixelVec.erase( hitPixelVec.begin() );
+		    
+		    //Now process all newly added pixels, initially this is the just previously added one
+		    //but in the process of neighbour finding we continue to add new pixels
+		    while( !newlyAdded.empty() )
+		      {
+			bool newlyDone = true;
+			float x1, x2, y1, y2, dX, dY, cx1, cy1, cx2, cy2, cutX, cutY, t1 , t2, dT;
+			
+			//check against all pixels in the hitPixelVec
+			for( std::vector<EUTelGeometricPixel>::iterator hitVec = hitPixelVec.begin(); hitVec != hitPixelVec.end(); ++hitVec )
+			  {
+			    //get the relevant infos from the newly added pixel
+			    x1 = newlyAdded.front().getPosX();
+			    y1 = newlyAdded.front().getPosY();
+			    t1 =  newlyAdded.front().getTime();
+			    cx1 = newlyAdded.front().getBoundaryX();
+			    cy1 = newlyAdded.front().getBoundaryY();
+			    
+			    //and the pixel we test against
+			    x2 = hitVec->getPosX();
+			    y2 = hitVec->getPosY();
+			    t2 = hitVec->getTime();
+			    cx2 = hitVec->getBoundaryX();
+			    cy2 = hitVec->getBoundaryY();
+			    
+			    dX = x1 - x2;
+			    dY = y1 - y2;
+			    dT = t1 - t2;
+			    cutX = (cx1+cx2)*1.01; //this additional 1% is accounting for precision
+			    cutY = (cy1+cy2)*1.01; //uncertainty with the geo framework
+			    
+			    //if they pass the spatial and temporal cuts, we add them	
+			    if(	(dX*dX <= cutX*cutX) && (dY*dY <= cutY*cutY) && (dT*dT <= _cutT*_cutT) )
+			      {
+				//add them to the cluster as well as to the newly added ones
+				newlyAdded.push_back( *hitVec );
+				sparseCluster->addSparsePixel( &(*hitVec) );
+				//and remove it from the original collection
+				hitPixelVec.erase( hitVec );
+				//for the pixel we test there might be other neighbours, we still have to check
+				newlyDone = false;
+				break;
+			      }
+			  }
+			
+			//if no neighbours are found, we can delete the pixel from the newly added
+			//we tested against _ALL_ non cluster pixels, there are no other pixels
+			//which could be neighbours
+			if(newlyDone) newlyAdded.erase( newlyAdded.begin() );
+		      }	
+		    
+		    //Now we need to process the found cluster
+		    if ( sparseCluster->size() > 0 ) 
+		      {
+			// set the ID for this zsCluster
+			idZSClusterEncoder["sensorID"]  = sensorID;
+			idZSClusterEncoder["sparsePixelType"] = static_cast<int>( kEUTelGeometricPixel );
+			idZSClusterEncoder["quality"] = 0;
+			idZSClusterEncoder.setCellID( zsCluster.get() );
+			
+			// add it to the cluster collection
+			sparseClusterCollectionVec->push_back( zsCluster.get() );
+			
+			//int xSeed, ySeed, xSize, ySize;
+			//sparseCluster->getClusterInfo(xSeed, ySeed, xSize, ySize);
+			
+			// prepare a pulse for this cluster
+			std::unique_ptr<TrackerPulseImpl> zsPulse = std::make_unique<TrackerPulseImpl>();
+			idZSPulseEncoder["sensorID"]  = sensorID;
+			//idZSPulseEncoder["xSeed"]     = xSeed;
+			//idZSPulseEncoder["ySeed"]     = ySeed;
+			idZSPulseEncoder["type"]      = static_cast<int>(kEUTelGenericSparseClusterImpl);
+			idZSPulseEncoder.setCellID( zsPulse.get() );
+			
+			zsPulse->setCharge( sparseCluster->getTotalCharge() );
+			//zsPulse->setQuality( static_cast<int > (sparseCluster->getClusterQuality()) );
+			zsPulse->setTrackerData( zsCluster.release() );
+			pulseCollection->push_back( zsPulse.release() );
+			
+			// last but not least increment the totClusterMap
+			_totClusterMap[ sensorID ] += 1;
+			
+		      } //cluster processing if
+		    
+		    else 
+		      {
+			//in the case the cluster candidate is not passing the threshold ...
+			//forget about them, the memory should be automatically cleaned by smart ptr's
+		      }
+		  } //loop over all found clusters
+		
+
+
+/*
 //                        if(sensor_ID>10) 
 //                        {
                                 std::vector<EUTelAnnulusPixel> newlyAdded;
@@ -626,11 +744,11 @@ void EUTelProcessorAnnulusClustering::geometricClustering(LCEvent * evt, LCColle
 			        		//forget about them, the memory should be automatically cleaned by std::auto_ptr's
 			        	}
 			        } //loop over all found clusters
-
+*/
 
                       //  }
 			delete genericPixel;
-    		}	 
+		}
 		else 
 		{
     			throw UnknownDataTypeException("Unknown sparsified pixel");
@@ -701,6 +819,22 @@ void EUTelProcessorAnnulusClustering::fillHistos (LCEvent * evt)
 			int detectorID = static_cast<int>( cellDecoder(pulse)["sensorID"] ); 
 			//TODO: do we need this check?
 			//SparsePixelType pixelType = static_cast<SparsePixelType> (0);
+			
+//Sam's mod
+
+			EUTelGeometricClusterImpl* cluster;
+	
+			if( type == kEUTelGenericSparseClusterImpl ) 
+			{
+		    	cluster = new EUTelGeometricClusterImpl ( static_cast<TrackerDataImpl*> ( pulse->getTrackerData() ) );
+			}	 
+			else 
+			{
+			    streamlog_out ( ERROR4 ) <<  "Unknown cluster type. Sorry for quitting" << std::endl;
+			    throw UnknownDataTypeException("Cluster type unknown");
+			}
+
+			/*
 			EUTelAnnulusClusterImpl* cluster;
 	
 			if( type == kEUTelAnnulusClusterImpl ) 
@@ -712,6 +846,7 @@ void EUTelProcessorAnnulusClustering::fillHistos (LCEvent * evt)
 			    streamlog_out ( ERROR4 ) <<  "Unknown cluster type. Sorry for quitting" << std::endl;
 			    throw UnknownDataTypeException("Cluster type unknown");
 			}
+			*/
 	
 			//if this key doesn't exist yet it will be value initialized, this is desired, for int this is 0!
 			eventCounterMap[detectorID]++;
@@ -729,6 +864,15 @@ void EUTelProcessorAnnulusClustering::fillHistos (LCEvent * evt)
 
 			if(foundexcludedsensor) continue;
 
+//Sam's mos
+
+	// get the cluster size in X and Y separately and plot it:
+			int xPos, yPos, xSize, ySize;
+			cluster->getClusterInfo(xPos, yPos, xSize, ySize);
+			float geoPosX, geoPosY, geoSizeX, geoSizeY;
+			cluster->getClusterGeomInfo(geoPosX, geoPosY, geoSizeX, geoSizeY);
+
+/*
 			// get the cluster size in X and Y separately and plot it:
 			int xPos, yPos, xSize, ySize;
 			cluster->getClusterInfo(xPos, yPos, xSize, ySize); //the xPos and yPos is the position in the index space; xSize and ySize is the size  also in the index space
@@ -739,7 +883,7 @@ void EUTelProcessorAnnulusClustering::fillHistos (LCEvent * evt)
 								float Fxpos=geo::gGeometry()._PLTRpara.Fx;
                                 float Fypos=geo::gGeometry()._PLTRpara.Fy;        //get through other way?        
 								
-					/*			else if (sdetectorID == 11) 
+								else if (sdetectorID == 11) 
 								{
 								float Fxpos=geo::gGeometry()._PUTRpara.Fx;
                                 float Fypos=geo::gGeometry()._PUTRpara.Fy;        //get through other way?        
@@ -754,12 +898,15 @@ void EUTelProcessorAnnulusClustering::fillHistos (LCEvent * evt)
 								float Fxpos=geo::gGeometry()._PUTLpara.Fx;
                                 float Fypos=geo::gGeometry()._PUTLpara.Fy;        //get through other way?        
 								}
-					*/			
+							
 					   // float Fxpos=geo::gGeometry()._R0para.Fx;
                         //float Fypos=geo::gGeometry()._R0para.Fy;   
 			cluster->getClusterGeomInfo(Fxpos, Fypos, geoPosX, geoPosY, geoPosR, geoPosPhi, geoSizeR, geoSizePhi); // the geoPosX and geoPosY is the r and phi in the polar coordinate, geoSizeX and geoSizeY are the size of r and phi in the polar coordinate 
                         //streamlog_out(DEBUG2)<<"xPos, yPos, xSize, ySize = "<<xPos<<", "<<yPos<<", "<<xSize<<", "<<ySize<<std::endl;
                       //  streamlog_out(MESSAGE5)<<"geoPos, geoPos, geoSize, geoSize = "<<geoPosX<<", "<<geoPosY<<", "<<Fxpos<<", "<<Fypos<<std::endl;
+			
+			*/
+			
 			//Do all the plots
 			(dynamic_cast<AIDA::IHistogram1D*> (_clusterSizeXHistos[detectorID]))->fill(xSize);
 			(dynamic_cast<AIDA::IHistogram1D*> (_clusterSizeYHistos[detectorID]))->fill(ySize);

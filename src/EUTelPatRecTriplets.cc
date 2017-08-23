@@ -101,14 +101,14 @@ EUTelTrack EUTelPatRecTriplets::getTrack(triplets tripLeft,triplets tripRight){
     return track;
 
 
-
-	if(_numberOfTracksTotal % 500 == 0){
+/*
+	if(_numberOfTracksTotal % 5000 == 0){
 	  //streamlog_out(MESSAGE5) << "Percentage tracks without DUT hit: " << static_cast<float>(_tracksWithoutHit)/static_cast<float>(_numberOfTracksTotal)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of tracks per event: " << static_cast<float>(_numberOfTracksTotal)/static_cast<float>(getEventNumber() +1)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of left arm triplets per event: " << static_cast<float>(_numberTripletsLeft)/static_cast<float>(getEventNumber() +1)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of right arm triplets per event: " << static_cast<float>(_numberTripletsRight)/static_cast<float>(getEventNumber() +1)<< std::endl;
     }
-
+*/
 }
 bool EUTelPatRecTriplets::getTriplet(doublets& doublet, EUTelHit& hitCen,triplets& triplet){
 
@@ -413,23 +413,27 @@ float EUTelPatRecTriplets::getDistLocal(std::vector<EUTelHit>::iterator itHit, s
 std::vector<EUTelTrack> EUTelPatRecTriplets::getMinFakeTracks(){
     std::vector<EUTelTrack> tracks;
     std::vector<EUTelPatRecTriplets::triplets> tripletVec = getTriplets();
-    streamlog_out(DEBUG1) << "Total number of triplets found:  " << tripletVec.size()  << std::endl;
+    streamlog_out(MESSAGE5) << "Total number of triplets found:  " << tripletVec.size()  << std::endl;
     std::vector<std::vector<EUTelHit> >  tracksHits= getTrackHitsFromTriplets(tripletVec);
+     streamlog_out(MESSAGE5) <<  "tracksHits.size() = "<<tracksHits.size() <<std::endl;
     ///Loop over all hits which make up a track. 
     std::vector< std::pair< std::vector<EUTelHit> , std::vector<EUTelHit> > > tracksAndDUTHits;
     for(std::vector<std::vector<EUTelHit> >::iterator itTrack = tracksHits.begin(); itTrack != tracksHits.end();++itTrack){
         std::vector<EUTelHit> newHits;
+
+      streamlog_out(MESSAGE5) <<  "EUTelExcludedPlanes::_senInc.size() = "<<EUTelExcludedPlanes::_senInc.size() <<std::endl;
         if(EUTelExcludedPlanes::_senInc.size() > 6 ){///Only look for DUTs if we have more planes included.
     //        std::cout<<"The # tracks: " << tracksHits.size() << std::endl;
             doublets doub;
             getDoublet(*(itTrack->begin()),*(itTrack->rbegin()),doub);
             std::vector< unsigned int> dut;
             for(size_t i = 0 ; i < EUTelExcludedPlanes::_senInc.size(); ++i){
+                streamlog_out(MESSAGE5) <<  "EUTelExcludedPlanes::_senInc.at(i) [>5] = "<<EUTelExcludedPlanes::_senInc.at(i) << ", i = "<<i<<std::endl;
                 if(EUTelExcludedPlanes::_senInc.at(i) > 5){
                     dut.push_back(EUTelExcludedPlanes::_senInc.at(i));
                 }
             }
-            streamlog_out(DEBUG1) << "Got hit! "  << std::endl;
+            streamlog_out(MESSAGE5) << "Got hit! "  << std::endl;
             int hitNum=0; //Need a minimum of 1 DUT hit to pass track.
             bool pass =  getDoubHitOnTraj(doub, dut,hitNum, newHits);
       //      if(!pass){
@@ -454,17 +458,29 @@ std::vector<EUTelTrack> EUTelPatRecTriplets::getMinFakeTracks(){
             combineHits.reserve( tracks.size() + dut.size() ); // preallocate memory
             combineHits.insert( combineHits.end(), track.begin(), track.end() );
             combineHits.insert( combineHits.end(), dut.begin(), dut.end() );
-            streamlog_out(DEBUG1) <<" Combined! "  << std::endl;
+            streamlog_out(MESSAGE5) <<" Combined! "  << std::endl;
             ///Hit order does not matter
+            streamlog_out(MESSAGE5) << "check after combined"<<std::endl;
+            streamlog_out(MESSAGE5) <<  "dut.size() = "<< dut.size() <<std::endl;
+            streamlog_out(MESSAGE5) <<  "track.size() = "<< track.size() <<std::endl;
+            streamlog_out(MESSAGE5) <<  "After combined, tracks.size() = "<< tracks.size() <<std::endl;
+
             tracks.push_back(EUTelTrackCreate::getTrackFourHits(combineHits));
+            streamlog_out(MESSAGE5) <<  "After combined, tracks.size() = "<< tracks.size() <<std::endl;
         }
-    }else{
+    }
+    streamlog_out(MESSAGE5) <<  "After combined, tracks.size() = "<< tracks.size() <<std::endl;
+    else{
   for(size_t i =0 ; i < tracksHits.size() ; ++i){
       tracks.push_back(EUTelTrackCreate::getTrackFourHits(tracksHits.at(i)));
+       streamlog_out(MESSAGE5) <<  "else, tracks.size() = "<<tracks.size() <<std::endl;
   }
+ 
     }
-    return tracks;
+  
 
+    return tracks;
+  
 }
  std::vector< std::pair< std::vector<EUTelHit> , std::vector<EUTelHit> > > EUTelPatRecTriplets::getUniqueMatches( std::vector< std::pair< std::vector<EUTelHit> , std::vector<EUTelHit> > >& tracksAndDUTHits){
     //This really could be improved! Too many for loops!
@@ -622,12 +638,15 @@ void EUTelPatRecTriplets::setHitsVecPerPlane()
 ///Other 
 void EUTelPatRecTriplets::printTrackQuality(std::vector<EUTelTrack>&  tracks )
 {
+    streamlog_out(MESSAGE5)<< "start track quality check" << std::endl;
     for(size_t i = 0 ; i < tracks.size(); i++){
+        streamlog_out(MESSAGE5)<< "check" << i << std::endl;
         EUTelTrack& track = tracks.at(i);
         bool newTrack =true;
         for(size_t j = 0 ; j < track.getStates().size(); j++){
             EUTelState& state = track.getStates().at(j);
-            if(state.getLocation() > 5 and state.getStateHasHit() and newTrack){
+            streamlog_out(MESSAGE5) << "state.getLocation() = "<< state.getLocation() <<", state.getStateHasHit() = "<< state.getStateHasHit() << ", newTrack =" <<newTrack<<std::endl;
+            if(state.getLocation() > 5 and state.getStateHasHit() and newTrack){ //getLocation = get Plane ID, location > 5 = exclude mimosa plane
                 _numberOfTracksDUTTotal = _numberOfTracksDUTTotal + 1; 
                 newTrack=false;
             }
@@ -635,12 +654,16 @@ void EUTelPatRecTriplets::printTrackQuality(std::vector<EUTelTrack>&  tracks )
     }
 
 	_numberOfTracksTotal = _numberOfTracksTotal + tracks.size();
-	if(_numberOfTracksTotal % 10000 == 0){
+    
+    
+    if(_numberOfTracksTotal % 10000 == 0){
         streamlog_out(MESSAGE5) << "Number of tracks with DUT hit per event: " << static_cast<float>(_numberOfTracksDUTTotal)/static_cast<float>(getEventNumber() +1)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of tracks per event: " << static_cast<float>(_numberOfTracksTotal)/static_cast<float>(getEventNumber() +1)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of left arm triplets per event: " << static_cast<float>(_numberTripletsLeft)/static_cast<float>(getEventNumber() +1)<< std::endl;
         streamlog_out(MESSAGE5) << "Number of right arm triplets per event: " << static_cast<float>(_numberTripletsRight)/static_cast<float>(getEventNumber() +1)<< std::endl;
     }
+    
+
 }
 void EUTelPatRecTriplets::printHits()
 {

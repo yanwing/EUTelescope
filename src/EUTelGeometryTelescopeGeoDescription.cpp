@@ -141,6 +141,7 @@ TVector3 EUTelGeometryTelescopeGeoDescription::siPlaneYAxis( int planeID ) {
 }
 
 void EUTelGeometryTelescopeGeoDescription::readSiPlanesLayout() {
+			//streamlog_out(WARNING1) << "check" << std::endl;
 	// sensor-planes in geometry navigation:
 	_siPlanesParameters = const_cast< gear::SiPlanesParameters*> (&( _gearManager->getSiPlanesParameters()));
 	_siPlanesLayerLayout = const_cast< gear::SiPlanesLayerLayout*> (&(_siPlanesParameters->getSiPlanesLayerLayout()));
@@ -207,6 +208,7 @@ void EUTelGeometryTelescopeGeoDescription::readSiPlanesLayout() {
 	//std::sort(_sensorIDVec.begin(), _sensorIDVec.end(), doCompare(*this) );
         //for(int i=0;i<_nPlanes;i++) std::cout<<" i = "<<i<<" sensorID = "<<_sensorIDVec[i]<<std::endl;	
 }
+	
 
 void EUTelGeometryTelescopeGeoDescription::readTrackerPlanesLayout() {
 	// sensor-planes in geometry navigation:
@@ -274,8 +276,9 @@ void EUTelGeometryTelescopeGeoDescription::readTrackerPlanesLayout() {
 	_nPlanes =  _sensorIDVec.size(); 
 }
 
-
+		
  void EUTelGeometryTelescopeGeoDescription::readR0Geo( ){
+	// streamlog_out(WARNING2)  << "check" << std::endl;
  
          if(_isR0GeoInitialized){
  
@@ -369,7 +372,7 @@ void EUTelGeometryTelescopeGeoDescription::readTrackerPlanesLayout() {
  
            }
        }
- 
+
   }
  
 
@@ -396,6 +399,7 @@ _geoManager(nullptr)
 }
 
 void EUTelGeometryTelescopeGeoDescription::readGear() {
+	//streamlog_out(WARNING2)  << "check3" << std::endl;
 	if( _gearManager == nullptr ) {
 		streamlog_out(ERROR2) << "The GearMgr is not available, for an unknown reason." << std::endl;
 		throw eutelescope::InvalidGeometryException("GEAR manager is not initialised");
@@ -454,6 +458,7 @@ void EUTelGeometryTelescopeGeoDescription::initializeTGeoDescription( std::strin
  *
  */
 void EUTelGeometryTelescopeGeoDescription::translateSiPlane2TGeo(TGeoVolume* pvolumeWorld, int SensorId ) {
+	//streamlog_out(WARNING2)  << "check5" << std::endl;
 	double xc, yc, zc;   // volume center position 
 	double alpha, beta, gamma;
 	double rotRef1, rotRef2, rotRef3, rotRef4;
@@ -579,6 +584,7 @@ void EUTelGeometryTelescopeGeoDescription::translateSiPlane2TGeo(TGeoVolume* pvo
 //sam's mod start
 
 	if( name == "CAST" ) {
+		//streamlog_out(WARNING2)  << "check6" << std::endl;
            /*
 		    double pitchPhi1 = _R0para.pitchPhi1;
             double pitchPhi2 = _R0para.pitchPhi2;
@@ -592,7 +598,7 @@ void EUTelGeometryTelescopeGeoDescription::translateSiPlane2TGeo(TGeoVolume* pvo
 			*/
  
  
-                  if(SensorId ==14 || SensorId ==10 || SensorId == 18 || SensorId == 22)
+                  if(SensorId ==10 )//|| SensorId ==10 || SensorId == 18 || SensorId == 22)
 				{
 					_pixGeoMgr->addCastedpetaletPlane(SensorId, siPlaneXNpixels(SensorId), siPlaneYNpixels(SensorId), siPlaneXSize(SensorId), siPlaneYSize(SensorId), siPlaneZSize(SensorId), siPlaneRadLength(SensorId), stVolName);
                 streamlog_out ( WARNING3) << " PETALET GEOMETERY LTL is loaded" << std::endl;
