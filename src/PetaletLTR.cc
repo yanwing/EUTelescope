@@ -84,7 +84,7 @@ PetaletLTR::PetaletLTR(): EUTelGenericPixGeoDescr(45.0, 45.0, 1.0,	//size X, Y, 
 	  arbL->SetVertex(7, xL2, Y[1]);*/
 	  plane->AddNode(strip,i+1+ SIndex ,new TGeoTranslation(0,0,0)); //i+3 ->> i+5, short /ganged strip correction
 	}
-
+/*
 	//=======================================================================================================
 	//UTR
 	//=======================================================================================================
@@ -185,7 +185,7 @@ PetaletLTR::PetaletLTR(): EUTelGenericPixGeoDescr(45.0, 45.0, 1.0,	//size X, Y, 
 	  plane->AddNode(strip,i+1,new TGeoTranslation(0,0,0));
 	}
 
-
+*/
 
 
 
@@ -213,7 +213,10 @@ std::string PetaletLTR::getPixName(int x , int y)
 {
 	char buffer [100];
 	//return path to the pixel, don't forget to shift indices by +1+
-	snprintf( buffer, 100, "/sensarea_box_1/sensarea_row%d_%d", y+1, x+1);
+
+	snprintf( buffer, 100, "/sensarea_box_1/sensarea_row1_%d", x+1);
+	
+
 	return std::string( buffer ); 
 }
 	/*TODO*/ std::pair<int, int>  PetaletLTR::getPixIndex(char const*){return std::make_pair(0,0); }

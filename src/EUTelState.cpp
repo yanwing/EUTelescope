@@ -290,10 +290,10 @@ void EUTelState::setPositionGlobal(float positionGlobal[]){
     _position[1] = posLocal[1];
     _position[2] = posLocal[2];
     if(abs(_position[2])  >  1e-7){
-//        streamlog_out(MESSAGE5) << "The local z position which is being set is not zero! " << std::endl;
- //       streamlog_out(MESSAGE5) << "Global position: "<< positionGlobal[0] <<","<< positionGlobal[1] <<"," <<  positionGlobal[2] << "  ID " << this->getLocation() << std::endl;
-  //      streamlog_out(MESSAGE5) << "Local position: "<< _position[0] <<","<< _position[1] <<"," <<  _position[2] << std::endl;
-        throw(std::string("The corrections increase the local z postition"));
+       streamlog_out(DEBUG1) << "The local z position which is being set is not zero! " << std::endl;
+       streamlog_out(DEBUG1) << "Global position: "<< positionGlobal[0] <<","<< positionGlobal[1] <<"," <<  positionGlobal[2] << "  ID " << this->getLocation() << std::endl;
+       streamlog_out(DEBUG1) << "Local position: "<< _position[0] <<","<< _position[1] <<"," <<  _position[2] << std::endl;
+       throw(std::string("The corrections increase the local z postition")); //may have this problem when rotation of x and y axis are not zero in gear file
     }
 }
 void EUTelState::setLocalDirGlobalDir(TVector3 dirIn){

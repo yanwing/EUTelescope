@@ -14,6 +14,8 @@ EUTelAnnulusClusterImpl::~EUTelAnnulusClusterImpl()
 }
 
 void EUTelAnnulusClusterImpl::getClusterGeomInfo(float& FxCoord, float& FyCoord, float& xPos, float& yPos, float& rPos, float& phiPos, float& rSize, float& phiSize) const  //get the information of the cluster with several annulus pixels, just for plotting? 
+//void EUTelAnnulusClusterImpl::getClusterGeomInfo(float& FxCoord, float& FyCoord, float& xPos, float& yPos, float& rPos, float& phiPos, float& rSize, float& phiSize) const  //get the information of the cluster with several annulus pixels, just for plotting? 
+
 {
 	float rMin = std::numeric_limits<float>::max(); 	//stores the largest possible value every pixel will be lower, 
 	float phiMin = rMin;					//so its OK for max 
@@ -32,10 +34,10 @@ void EUTelAnnulusClusterImpl::getClusterGeomInfo(float& FxCoord, float& FyCoord,
 		getSparsePixelAt( index , pixel);
 
 		//And its position
-		//float xCur = pixel->getPosX();
-		//float yCur = pixel->getPosY();
-                float rlength = pixel->getr();
-                float ang = pixel->getang();
+		float xCur = pixel->getPosX();
+		float yCur = pixel->getPosY();
+        float rlength = pixel->getr();
+        float ang = pixel->getang();
                 //streamlog_out(MESSAGE5)<<"index = "<<index<<" r = "<<rlength<<" ang = "<<ang<<" rmin = "<<pixel->getRmin()<<" rmax = "<<pixel->getRmax()<<" dphi = "<<pixel->getdphi()<<std::endl;
 
 		if( ang < phiMin )

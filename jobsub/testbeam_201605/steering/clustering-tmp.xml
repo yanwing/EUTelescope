@@ -32,7 +32,7 @@
    </execute>
 
    <global>
-      <parameter name="LCIOInputFiles"> @NativePath@/../output/lcio/@FilePrefix@-converter.slcio </parameter>
+      <parameter name="LCIOInputFiles"> @LcioPath@/@FilePrefix@-converter.slcio </parameter>
       <parameter name="GearXMLFile" value="@GearFilePath@/@GearFile@"/>
       <parameter name="MaxRecordNumber" value="@MaxRecordNumber@"/>
       <parameter name="SkipNEvents" value="@SkipNEvents@"/>

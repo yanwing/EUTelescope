@@ -164,12 +164,13 @@ namespace eutelescope {
  			covxy[1][1] = cov[0]*sin(ang_meas)*sin(ang_meas) + cov[3]*r_meas*r_meas*cos(ang_meas)*cos(ang_meas);
  
                        TMatrixDSym Precxy(2);
-		       double deter = covxy.Determinant();
+               double deter = covxy.Determinant();
+               //streamlog_out(MESSAGE5)<<"determinant = "<< covxy.Determinant()<<std::endl;
                         Precxy[0][0] = covxy[1][1]/deter;
                         Precxy[0][1] = -covxy[0][1]/deter;
                         Precxy[1][0] = -covxy[1][0]/deter;
                         Precxy[1][1] = covxy[0][0]/deter;
-
+                    //streamlog_out(MESSAGE5)<< "matrix " << covxy[0][0] <<","<<covxy[0][1]<<","<<covxy[1][0]<<","<<covxy[1][1]<<std::endl;
                        // TMatrixDSymEigen measEigen(Precxy);
                        // TMatrixD measTransformation(2,2);
 
@@ -182,6 +183,7 @@ namespace eutelescope {
                        // std::cout<<"measTransformation print"<<std::endl;
                        // measTransformation.Print();  
 
+                      // streamlog_out(MESSAGE5)<<"point.addMeasurement "<<std::endl;
                         point.addMeasurement(state.getProjectionMatrix(), meas, Precxy, 0);
 			streamlog_out(DEBUG4) << "This is what we add to the measured point" << std::endl;
 			streamlog_out(DEBUG4) << "Residuals and precision matrix for the hit:" << std::endl;

@@ -88,9 +88,10 @@ unsigned int EUTelTrack::getNumberOfHitsOnTrack() const {
 }
 
 void EUTelTrack::print(){
-	streamlog_out(DEBUG1) <<"TRACK==>"<< " Chi: "<<getChi2() <<" ndf: "<<getNdf() <<". Path total variance: " << _radPerTotal <<" OoverP:" << getQOverP()  << std::endl; 
+    //DEBUG1->MESSEAGE5
+	streamlog_out(DEBUG) <<"TRACK==>"<< " Chi: "<<getChi2() <<" ndf: "<<getNdf() <<". Path total variance: " << _radPerTotal <<" OoverP:" << getQOverP()  << std::endl; 
     std::vector<EUTelState> states = getStates();
-	streamlog_out(DEBUG1) <<"STATES:"<<std::endl;
+	streamlog_out(DEBUG) <<"STATES:"<<std::endl;
 	for(unsigned int i=0; i < states.size(); ++i){
         states.at(i).print();
 	}	

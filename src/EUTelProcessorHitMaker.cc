@@ -320,11 +320,10 @@ void EUTelProcessorHitMaker::processEvent (LCEvent * event) {
 			}
 
   
-					    if (sensorID == 10) 
-								{
+					    //if (sensorID == 10) {
 								float Fxpos=geo::gGeometry()._PLTRpara.Fx;
                                 float Fypos=geo::gGeometry()._PLTRpara.Fy;        //get through other way?        
-								}
+								//}
                 /*
 								   if (sensorID == 11) 
 								{

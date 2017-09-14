@@ -54,6 +54,7 @@ _TripletDistCutYHisto()
     registerOptionalParameter("minHits", "Minimum number of hits needed", _minHits ,int(6));
     registerOptionalParameter("mode", "Alignment or basic track fitting. This is either 1 for alignment and 0 for basic track fitting. ", _mode ,int(1));
     registerProcessorParameter("DUTWindow", "The distance the DUT hit must be from the track", _dutDistCut, static_cast<double> (10));
+    registerProcessorParameter("DUTRadialWindow", "The distance the DUT hit must be from the track for the radial strips", _dutRadialDistCut, static_cast<double> (10));
 
 	///This is needed if we have a magnetic field to determine curvature
 	registerOptionalParameter("BeamEnergy", "Beam energy [GeV]", _eBeam, static_cast<double> (4.0));
@@ -93,6 +94,7 @@ void EUTelProcessorPatRecTriplets::init(){
 	  _TripletSlopeHistoX = marlin::AIDAProcessor::histogramFactory(this)->createHistogram1D("TripletSlopeX", 400, -0.01,0.01);
 	  _TripletSlopeHistoY = marlin::AIDAProcessor::histogramFactory(this)->createHistogram1D("TripletSlopeY", 400, -0.01,0.01);
 	  _DUTWindowHisto = marlin::AIDAProcessor::histogramFactory(this)->createHistogram1D("DUTWindow", 500, 0,5);
+	  _DUTRadialWindowHisto = marlin::AIDAProcessor::histogramFactory(this)->createHistogram1D("DUTRadialWindow", 15000, 0,2);
 		_nProcessedRuns = 0;
 		_nProcessedEvents = 0;
 		std::string name = EUTELESCOPE::GEOFILENAME;
@@ -107,10 +109,11 @@ void EUTelProcessorPatRecTriplets::init(){
 		_trackFitter = new EUTelPatRecTriplets(_DoubletXseperationHistoRight, _DoubletYseperationHistoRight,_DoubletXseperationHistoLeft,
 					   _DoubletYseperationHistoLeft, _TripletXseperationHistoRight, _TripletYseperationHistoRight,
 					   _TripletXseperationHistoLeft, _TripletYseperationHistoLeft, _TripletDistCutXHisto,
-					   _TripletDistCutYHisto,_TripletSlopeHistoX,_TripletSlopeHistoY,_DUTWindowHisto);
+					   _TripletDistCutYHisto,_TripletSlopeHistoX,_TripletSlopeHistoY,_DUTWindowHisto,_DUTRadialWindowHisto);
         _trackFitter->setMode(_mode);
 		_trackFitter->setNumHits(_minHits);
 		_trackFitter->setDUTCut(_dutDistCut);
+		_trackFitter->setDUTRadialCut(_dutRadialDistCut);
 
         EUTelExcludedPlanes::setRelativeComplementSet(_excludePlanes);
 		_trackFitter->setDoubletDistCut(_doubletDistCut);
@@ -248,8 +251,9 @@ void EUTelProcessorPatRecTriplets::plotHistos( std::vector<EUTelTrack>& trackCan
  
 	static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_numberTracksCandidatesHistName ] ) -> fill( nTracks );
 	streamlog_out( MESSAGE2 ) << "Event #" << _nProcessedEvents << std::endl;
-	int numberOfHits =0;
+	//int numberOfHits =0;
 	for (size_t i = 0; i< trackCandidates.size( ) ; ++i ) {//loop over all tracks
+	int numberOfHits =0;
 		for(size_t j = 0; j <trackCandidates[i].getStates().size(); ++j){//loop over all states 
 			if(!trackCandidates[i].getStates()[j].getStateHasHit()){//We only ever store on hit per state
 				continue;
@@ -260,6 +264,7 @@ void EUTelProcessorPatRecTriplets::plotHistos( std::vector<EUTelTrack>& trackCan
 			//static_cast < AIDA::IHistogram1D* > ( _aidaHistoMap1D[ _histName::_HitOnTrackTimeHistName ] ) -> fill(trackCandidates[i].getStates()[j].getHit().getTime()  );
 		}
 		streamlog_out( MESSAGE1 ) << "Track hits end:==============" << std::endl;
+	//	streamlog_out( MESSAGE5 ) << "number of hits for the track is " <<numberOfHits<< std::endl;
 		}
 }
 

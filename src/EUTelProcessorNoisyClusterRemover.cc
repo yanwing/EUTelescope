@@ -110,12 +110,12 @@ void EUTelProcessorNoisyClusterRemover::processEvent(LCEvent* event) {
 		//and its quality
 		int quality = cellDecoder(inputPulse)["quality"];
 		int sensorID  = cellDecoder(inputPulse)["sensorID"];
-		
+		streamlog_out ( DEBUG4 ) << "check1: " << std::endl;
 		//if the kNoisyCluster flag is NOT set, we add the pulse to the output collection
 		if(!(quality & kNoisyCluster)) {
 			//TrackerPulseImpl for the output collection
 			std::unique_ptr<TrackerPulseImpl> outputPulse = std::make_unique<TrackerPulseImpl>();
-
+		streamlog_out ( DEBUG4 ) << "check2: " << std::endl;
 			//copy the information which is the same
 			outputPulse->setCellID0( inputPulse->getCellID0() );
 			outputPulse->setCellID1( inputPulse->getCellID1() );
@@ -124,7 +124,7 @@ void EUTelProcessorNoisyClusterRemover::processEvent(LCEvent* event) {
 			outputPulse->setCovMatrix( inputPulse->getCovMatrix() );
 			outputPulse->setQuality( inputPulse->getQuality() );
 			outputPulse->setTrackerData( inputPulse->getTrackerData() );
-			
+			streamlog_out ( DEBUG4 ) << "check3: " << std::endl;
 	                outputCollection->push_back( outputPulse.release() );
                         streamlog_out ( DEBUG4 ) << "elements in collection : " << outputCollection->size() << std::endl;
 		} else {
